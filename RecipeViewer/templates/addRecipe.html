@@ -1,0 +1,280 @@
+
+<script>
+    var ingredientRowIndex = 0
+
+    $(document).ready(function(){
+        addIngredientRow();
+        //$(".tooltip").tooltip({manual:true, content:"testcontent"})
+    });
+
+    function addIngredientRow()
+    {
+        var temp=ingredientRowIndex;
+        ingredientRowIndex++;
+        $.ajax({
+            url:'/getIngredientRow/',
+            type:'get',
+            data:{"rowIndex":temp},
+            success: function(response){
+                $("#ingredientFormColumn").append(response);
+                
+            }
+        });
+    }
+    function removeIngredientRow()
+    {
+        if(ingredientRowIndex > 1)
+        {
+            ingredientRowIndex--;
+            $("#ingredientFormRow-"+ingredientRowIndex).remove()
+        }
+    }
+    function getIngName(a)
+    {
+        name = $("#ingredientFormRow-"+a).children().children(".ingName").val()
+        $.ajax({
+            url:'/getIngredientExists/',
+            type:'get',
+            data:{"ingName":name},
+            success: function(response){
+                if(response["exists"])
+                {
+                    removeBorder(a)
+                    unitlist = findUnitList(response["unit"])
+                    $("#ingredientFormRow-"+a).children().children(".ingName").addClass("border border-success")
+                    $("#ingredientFormRow-"+a).children().children(".ingUnit").html($(unitlist).html())
+
+                    //god i hate this
+                    $("#ingredientFormRow-"+a).children().children(".ingUnit").children("option:eq(0)").attr("selected", false)
+                    $("#ingredientFormRow-"+a).children().children(".ingUnit").children("option:eq(1)").attr("selected", true)
+                    if(unitlist != "#EACH_UNITS")
+                    {
+                        $("#ingredientFormRow-"+a).children().children(".ingUnit").children("option:eq(1)").attr("selected", false)
+                        $("#ingredientFormRow-"+a).children().children(".ingUnit").children("option:eq(0)").attr("selected", true)
+                    }
+
+                }
+                else
+                {
+                    removeBorder(a)
+                    $("#ingredientFormRow-"+a).children().children(".ingName").addClass("border border-warning")
+                    $("#ingredientFormRow-"+a).children().children(".ingUnit").html("")
+                }
+            }
+        });
+    }
+    function findUnitList(unit)
+    {
+        list = "#EACH_UNITS"
+        $("#SOLID_UNITS").children("option").each(function(i, v){
+            if(v.value== unit)
+            {
+                list="#SOLID_UNITS"
+            }
+        })
+        $("#LIQUID_UNITS").children("option").each(function(i, v){
+            if(v.value == unit)
+            {
+                list="#LIQUID_UNITS"
+            }
+        })
+        $("#WEIGHT_UNITS").children("option").each(function(i, v){
+            if(v.value == unit)
+            {
+                list="#WEIGHT_UNITS"
+            }
+        })
+        return list;        
+    }
+    function removeBorder(a)
+    {
+        $("#ingredientFormRow-"+a).children().children(".ingName").removeClass("border border-success")
+        $("#ingredientFormRow-"+a).children().children(".ingName").removeClass("border border-warning")
+    }
+    function validateTitle()
+    {
+        title = $("#titleField").val()
+        exists = false
+        $("#recipenames").children("option").each(function(i, v){
+            if(v.value==title)
+            {
+                exists = true
+            }
+        });
+        if(exists)
+        {
+            $("#titleField").removeClass("border border-success")
+            $("#titleField").addClass("border border-warning")
+        }
+        else
+        {
+            $("#titleField").removeClass("border border-warning")
+            $("#titleField").addClass("border border-success")
+        }
+    }
+
+    function addRecipe()
+    {
+        console.log("add recipe")
+        dataDict={}
+
+        dataDict["title"] = $("#titleField").val();
+        dataDict["description"] = $("#descriptionField").val();
+        dataDict["username"] = $("#usernameField").val();
+        dataDict["imageURL"] = $("#imageURLField").val();
+        dataDict["prepTime"] = $("#preptimeField").val();
+        dataDict["cookTime"] = $("#cooktimeField").val();
+        dataDict["totalTime"] = $("#totaltimeField").val();
+        dataDict["rating"] = $("#ratingField").val();
+        dataDict["reviewCount"] = $("#reviewCountField").val();
+        dataDict["instructions"] = $("#instructionsField").val();
+        dataDict["url"] = $("#urlField").val();
+
+        var ingredients = []
+        $("#ingredientFormColumn").children().each(function(i, ingredientRow){
+            var name = $(ingredientRow).find("#ingNameField").val()
+            var unit = $(ingredientRow).find("#ingUnitField").val()
+            var quantity = $(ingredientRow).find("#ingQuantityField").val()
+            ingredients.push(name+"_"+unit+"_"+quantity)
+        });
+        dataDict["ingredients[]"] = ingredients;
+
+        $.ajax({
+            url:'/addRecipe/',
+            type:'post',
+            data:dataDict,
+            success: function(response){
+                console.log(response);
+            }
+        });
+    }
+</script>
+
+<datalist id="EACH_UNITS">
+    <option></option>
+    <option>each</option>
+</datalist>
+<datalist id="SOLID_UNITS">
+    <option>teaspoon</option>
+    <option>tablespoon</option>
+    <option>cup</option>
+</datalist>
+<datalist id="LIQUID_UNITS">
+    <option>mililiter</option>
+    <option>fluid ounce</option>
+    <option>pint</option>
+    <option>quart</option>
+    <option>liter</option>
+    <option>gallon</option>
+</datalist>
+<datalist id="WEIGHT_UNITS">
+    <option>ounce</option>
+    <option>pound</option>
+</datalist>
+
+<div>
+    <h1>Add New Recipe</h1>
+    <form id="recipeForm" onsubmit="addRecipe()" action="javascript:void(0);">
+        <div class="row">
+            <div class="form-group col">
+                <label for="locationInput">Recipe Title*</label>
+                <input type="text" class="form-control" id="titleField" list="recipenames" required oninput="validateTitle()">
+                <small id="titleHelp" class="form-text text-muted">Titles must be unique, existing recipe titles are shown as you type.</small>
+                <datalist id="recipenames">
+                    {%for x in recipenames%}
+                    <option>{{x}}</option>
+                    {%endfor%}
+                </datalist>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col">
+                <label for="descriptionField">Description*</label>
+                <textarea class="form-control" id="descriptionField" required></textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col">
+                <label for="usernameField">Username*</label>
+                <input type="text" class="form-control" id="usernameField" list="usernames" required>
+                <datalist id="usernames">
+                    {%for x in usernames%}
+                    <option>{{x}}</option>
+                    {%endfor%}
+                </datalist>
+            </div>
+            <div class="form-group col">
+                <label for="imageURLField">Image URL</label>
+                <input type="url" class="form-control" id="imageURLField">
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="form-group col">
+                <label for="preptimeField">Prep Time</label>
+                <input type="number" class="form-control" id="preptimeField" min="0" step="1"  max="99999" value="0">
+            </div>
+            <div class="form-group col">
+                <label for="cooktimeField">Cook Time</label>
+                <input type="number" class="form-control" id="cooktimeField" min="0" step="1"  max="99999" value="0">
+            </div>
+            <div class="form-group col">
+                <label for="totaltimeField">Total Time</label>
+                <input type="number" class="form-control" id="totaltimeField" min="0" step="1"  max="99999" value="0">
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="form-group col">
+                <label for="ratingField">Rating (1-5)</label>
+                <input type="number" class="form-control" id="ratingField" min="1" step="0.1"  max="5" value="5">
+            </div>
+            <div class="form-group col">
+                <label for="reviewCountField">Review Count</label>
+                <input type="number" class="form-control" id="reviewCountField" min="0" step="1"  max="99999" value="0">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col form-group">
+                <label for="instructionsField">Instructions*</label>
+                <textarea class="form-control" id="instructionsField" required></textarea>
+                <small id="instructionsHelp" class="form-text text-muted">Do not number instructions. Put each instruction on a new line.</small>
+            </div>
+        </div>
+
+        <div class="row">
+            <h5 class="col col-11">Ingredients*</h5>
+            <div class="col">
+                <button type="button" class="btn btn-secondary" style="width:50px" onclick="addIngredientRow()">+</button>
+            </div>
+        </div>
+
+        <datalist id = "ingredientNames">
+            {%for x in ingredientNames%}
+            <option>{{x}}</option>
+            {%endfor%}
+        </datalist>
+
+        <div class="row">
+            <div class="col" id="ingredientFormColumn">
+
+            </div>
+        </div>
+
+        <div class="row">
+            <h5 class="col col-11"></h5>
+            <div class="col">
+                <button type="button" class="btn btn-secondary" style="width:50px" onclick="removeIngredientRow()">-</button>
+            </div>
+        </div>
+
+        <div class="form-group" hidden="true">
+            <label for="locationInput">URL</label>
+            <input type="text" class="form-control" id="urlField" value="none.com">
+        </div>
+
+        <div class="row pt-4">
+            <button class="btn btn-lg btn-primary col, col-12" type="submit">Add Recipe</button>
+        </div>
+    </form>
+</div>

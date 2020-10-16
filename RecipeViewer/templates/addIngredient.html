@@ -1,0 +1,47 @@
+<div>
+    <h1>Add New Ingredient</h1>
+    <h3 style="color:{{message.0}}">{{message.1}}</h3>
+    <form action="/addIngredient/" method="post">
+        <div class="form-group">
+            <label for="nameInput"> Ingredient Name</label>
+            <input type="text" class="form-control" id="nameInput" placeholder="Name Goes Here" list="usedNames" name="name">
+            <small id="namehelp" class="form-text text-muted">Existing ingredient names will appear as suggestions if a similar ingredient already exists.</small>
+        </div>
+        <div class="form-group">
+            <label for="quantityInput">Quantity</label>
+            <input type="number" class="form-control" id="quantityInput" value="1" min="0" max="9999" step="any" name="quantity">
+        </div>
+        <div class="form-group">
+            <label for="unitInput">Unit</label>
+            <select class="form-control" id="unitInput" name="unit">
+                <option>teaspoon</option>
+                <option>tablespoon</option>
+                <option>cup</option>
+                <option>mililiter</option>
+                <option>pint</option>
+                <option>quart</option>
+                <option>liter</option>
+                <option>galon</option>
+                <option>fluid ounce</option>
+                <option>pound</option>
+                <option>ounce</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="locationInput">Location</label>
+            <input type="text" class="form-control" id="locationInput" list="locations" name="location">
+            <small id="namehelp" class="form-text text-muted">Existing locations will appear as suggestions, but feel free to add a new one.</small>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <datalist id="locations" hidden="true">
+            {% for x in locationNames %}
+            <option>{{x}}</option>
+            {% endfor %}
+        </datalist>
+        <datalist id="usedNames" hidden="true">
+            {% for x in usedNames %}
+            <option>{{x}}</option>
+            {% endfor %}
+        </datalist>
+    </form>
+</div>

@@ -1,0 +1,177 @@
+{%load static%}
+<link rel="stylesheet" type="text/css" href="{% static 'base.css' %}">
+
+<script>
+
+    function addModalHandler()
+    {
+        $('.ingredientRow').off("click").click(function(e){
+            if(!$(e.target).closest('.ingredientInputFieldCol').length)
+            {
+                if(!selectionExists() && !($(".modal").data('bs.modal') ||{})._isShown)
+                {
+                    var ingredient_id = $(this).attr('id')
+                    $.ajax({
+                        url:'/getIngredientInfo/',
+                        type:'get',
+                        data:{'ingredient_id':ingredient_id},
+                        success: function(response){
+                            $('.modal').html(response);
+                            $('#ingredientModal').modal('show'); 
+                        }
+                    });
+                }
+            }
+        });
+    }
+    $(document).ready(function(){
+        $('#ingredienttable')
+        .on('draw.dt', addModalHandler)
+        .on('search.dt', addModalHandler)
+        .on('page.dt', addModalHandler)
+        .on('length.dt', addModalHandler)
+        .DataTable();
+
+        $('.dataTables_length').addClass('bs-select');
+
+        $(document).click(function(e)
+        {
+            if (!$(e.target).closest('.modal-content').length) {
+                $('#ingredientModal').modal('hide');  
+            }
+            
+        });
+    });
+    function selectionExists()
+    {
+        if(window.getSelection){
+            return window.getSelection().toString() != "";
+        }
+        else if(document.selection){
+            return document.selection.createRange().text != ""
+        }
+        return false;
+    }
+    previous = 1
+    function addOne(iid)
+    {
+        if($("#iqf_"+iid).val() < 1)
+        {
+            $("#iqf_"+iid).val(Number($("#iqf_"+iid).val())+0.1);
+        }
+        else if($("#iqf_"+iid).val() < 9999)
+        {
+            $("#iqf_"+iid).val(Number($("#iqf_"+iid).val())+1);
+        }
+        fieldChange(iid);
+    }
+    function subOne(iid)
+    {
+        //var field = $("#iqf_"+iid)
+        if($("#iqf_"+iid).val() > 1)
+        {
+            $("#iqf_"+iid).val(Number($("#iqf_"+iid).val())-1);
+        }
+        else if($("#iqf_"+iid).val() > 0)
+        {
+            $("#iqf_"+iid).val(Number($("#iqf_"+iid).val())-0.1);
+            
+        }
+        fieldChange(iid);
+    }
+    //var previous = 1
+    function fieldFocus(iid)
+    {
+         previous = $("#iqf_"+iid).val();
+    }
+    function fieldChange(iid)
+    {
+        if(isNaN($("#iqf_"+iid).val()))
+        {
+            $("#iqf_"+iid).val(previous);
+            return;
+        }
+        if(Number($("#iqf_"+iid).val()) < 0)
+        {
+            $("#iqf_"+iid).val(previous);
+            return;
+        }
+        if(Number($("#iqf_"+iid).val()) > 9999)
+        {
+            $("#iqf_"+iid).val(previous);
+            return;
+        }
+        /*if(Number($("#iqf_"+iid).val()) < 1)
+        {
+            $("#iqf_"+iid).val(Math.round($("#iqf_"+iid).val()*100)/100);
+        }
+        else
+        {
+            $("#iqf_"+iid).val(Math.round($("#iqf_"+iid).val()));
+        }*/
+        $("#iqf_"+iid).val(Math.round($("#iqf_"+iid).val()*100)/100);
+        $.ajax({
+            url:'/updateIngredientQuantity/',
+            type:'get',
+            data:{'ingredient_id':iid, "newValue":$("#iqf_"+iid).val()},
+            success: function(response){
+
+            },
+            error: function(response){
+                $("#iqf_"+iid).val(previous)
+            }
+        });
+    }
+
+
+</script>
+
+<div class="modal" id="ingredientModal" tabindex="-1" role="dialog"></div>
+<div class="row">
+    <div class="col">
+        <h1>Ingredients</h1>
+    </div>
+    <div class="col">
+        <form action="/addIngredient/" class="float-right">
+            <button class="btn btn-primary btn-lg mx-auto" type="submit" style="margin-top:.5rem;">New Ingredient</button>
+        </form>
+    </div>
+</div>
+<div class="table-responsive">
+    <table class="table table-striped table-hover" id="ingredienttable" >
+        <thead>
+            <tr>
+                <th class="th-sm" scope="col">Name</th>
+                <th class="th-sm" scope="col">Quantity</th>
+                <th class="th-sm" scope="col">Unit</th>
+                <th class="th-sm" scope="col">Location</th>
+            </tr>
+        </thead>
+        <tbody>
+        {%for x in ingredients%}
+            <tr class="ingredientRow" id="ingredient_{{x.ingredient_id}}">
+                <td>{{x.name}}</td>
+                <td class="ingredientInputFieldCol">
+                    <div class="center" style="width: 300px;">
+                        <div class="input-group">
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-danger btn-number" id="iqfminus_{{x.ingredient_id}}" onclick="subOne('{{x.ingredient_id}}')">
+                                    <span class="glyphicon glyphicon-minus">-</span>
+                                </button>
+                            </span>
+                            <input id="iqf_{{x.ingredient_id}}" type="text" name="multiplier" class="form-control input-number" value="{{x.quantity}}" min="0" max="9999" onfocus="fieldFocus('{{x.ingredient_id}}')" onchange="fieldChange('{{x.ingredient_id}}')" oninvalid="fieldChange('{{x.ingredient_id}}')">
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-success btn-number" id="iqfplus_{{x.ingredient_id}}" onclick="addOne('{{x.ingredient_id}}')">
+                                    <span class="glyphicon glyphicon-plus">+</span>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </td>
+                <td>{{x.unit}}</td>
+                <td>{{x.location}}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>

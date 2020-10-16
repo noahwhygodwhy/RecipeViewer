@@ -1,0 +1,31 @@
+<!--<div class="row">
+    <div class="col">
+        <h1>{{title}}</h1>
+    </div>
+    <div class="col">
+        
+    </div>
+</div>
+<div class="table-responsive">
+    <table class="table table-striped table-hover" id="recipetable" >
+        <thead>
+            <tr>
+                <th class="th-sm" scope="col">Username</th>
+                <th class="th-sm" scope="col">Recipe Count</th>
+                <th class="th-sm" scope="col">Make Count</th>
+            </tr>
+        </thead>
+        <tbody>
+        {%for x in threeData%} [make, recipe, user]
+            {% comment %} <tr class="recipeRow" data-toggle="modal" data-target="#theModal" id="recipe_{{x.recipe_id}}"> {% endcomment %}
+            <tr class="recipeRow" id="recipe_{{x.recipe_id}}">
+                <td>{{x.user.username}}</td>
+                <td>{{x.recipeCount}}</td>
+                <td>{{x.date}}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+-->
+{% comment %} <div class="modal fade" id="theModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true"></div> {% endcomment %}

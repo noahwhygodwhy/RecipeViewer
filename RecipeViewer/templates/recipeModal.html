@@ -1,0 +1,374 @@
+
+<script>
+    SOLID_UNITS = {
+        "teaspoon":1,
+        "tablespoon":3,
+        "cup":48
+    }
+    LIQUID_UNITS = {
+        "mililiter":1,
+        "fluid ounce":29.5735, 
+        "pint":473.176,
+        "quart":946.353,
+        "liter":1000,
+        "gallon":3785.41
+
+    }
+    WEIGHT_UNITS = {
+        "ounce":1,
+        "pound":16
+    }
+
+
+
+    canMake = true
+    madeTimes = 0
+
+    $(document).ready(function(){
+        adjustIngredientQuantities()
+        setDefaultMakeDate()
+        setDefaultMakeTime()
+    });
+    
+    function addOne()
+    {
+        if($("#recipeMultField").val() < 1)
+        {
+            $("#recipeMultField").val(Number($("#recipeMultField").val())+0.1);
+        }
+        else if($("#recipeMultField").val() < 100)
+        {
+            $("#recipeMultField").val(Number($("#recipeMultField").val())+1);
+        }
+        fieldChange();
+    }
+    function subOne()
+    {
+        //var field = $("#recipeMultField")
+        if($("#recipeMultField").val() > 1)
+        {
+            $("#recipeMultField").val(Number($("#recipeMultField").val())-1);
+        }
+        else if($("#recipeMultField").val() > 0.1)
+        {
+            $("#recipeMultField").val(Number($("#recipeMultField").val())-0.1);
+            
+        }
+        fieldChange();
+    }
+    //var previous = 1
+    function fieldFocus()
+    {
+         previous = $("#recipeMultField").val();
+    }
+    function fieldChange()
+    {
+        if(Number($("#recipeMultField").val()) < 0.1)
+        {
+            $("#recipeMultField").val(previous);
+            return;
+        }
+        else if(Number($("#recipeMultField").val()) > 100)
+        {
+            $("#recipeMultField").val(previous);
+            return;
+        }
+        if(Number($("#recipeMultField").val()) < 1)
+        {
+            $("#recipeMultField").val(Math.round($("#recipeMultField").val()*10)/10);
+        }
+        else
+        {
+            $("#recipeMultField").val(Math.round($("#recipeMultField").val()));
+        }
+
+        adjustIngredientQuantities();
+        
+    }
+
+    function adjustIngredientQuantities()
+    {
+        canMake = true
+        $(".ingredientParagraph").each(function(){
+            newVal = String((Math.round(Number($(this).children(".oquant").text())*$("#recipeMultField").val()*100))/100)
+            $(this).children(".iquant").text(newVal)
+            });
+        //could be optimized to do them all at once, to reduce number of gets against the server
+        $(".ingredientParagraph").each(function(){
+            ingredient_id = $(this).attr("id").split(" ")[1]
+            $.ajax({
+                context:this,
+                //async:true,
+                url:'/getIngredientQuantity/',
+                type:'get',
+                data:{'ingredient_id':ingredient_id},
+                success: function(response){
+                    $(this).children(".pquant").text(response);
+                    wanted = Number($(this).children(".iquant").text());
+                    have = Number($(this).children(".pquant").text());
+                    wantedUnit = $(this).children(".iunit").text();
+                    haveUnit = $(this).children(".punit").text();
+
+                    values = adjustForUnits(wanted, have, wantedUnit, haveUnit);
+                    have = values[0];
+                    wanted = values[1];
+                    
+                    if(wanted > have)
+                    {
+                        canMake = false
+                        $(this).children(".stockSymbol").text("❌");
+                    }
+                    else
+                    {
+                        $(this).children(".stockSymbol").text("✔️");
+                    }
+                },
+                error: function(){
+                    console.log("ERROR ERROR ERROR 1")
+                }
+            });
+
+        });
+    }
+    function resetMultiplier()
+    {
+        $('#recipeMultField').val(1);
+        adjustIngredientQuantities();
+    }
+
+    function incompatibleUnits(wantedUnit, haveUnit)
+    {
+        if(wantedUnit in SOLID_UNITS)
+        {
+            if(!(haveUnit in SOLID_UNITS))
+            {
+                return true;
+            }
+        }
+        if(wantedUnit in LIQUID_UNITS)
+        {
+            if(!(haveUnit in LIQUID_UNITS))
+            {
+                return true;
+            }
+        }
+        if(wantedUnit in WEIGHT_UNITS)
+        {
+            if(!(haveUnit in WEIGHT_UNITS))
+            {
+                return true;
+            }
+        }
+        if(wantedUnit == "" || haveUnit == "")
+        {
+            return true;
+        }
+        return false;
+        
+    }
+
+    function adjustForUnits(wanted, have, wantedUnit, haveUnit)
+    {
+        if(wantedUnit == haveUnit)
+        {
+            return [have, wanted]
+        }
+        if(incompatibleUnits(haveUnit, wantedUnit))
+        {
+            return [have, Number.MAX_VALUE];
+        }
+        if(wantedUnit in SOLID_UNITS)
+        {
+            have = have*SOLID_UNITS[haveUnit]/SOLID_UNITS[wantedUnit];
+        }
+        if(wantedUnit in LIQUID_UNITS)
+        {
+            have = have*LIQUID_UNITS[haveUnit]/LIQUID_UNITS[wantedUnit];
+        }
+        if(wantedUnit in WEIGHT_UNITS)
+        {
+            have = have*WEIGHT_UNITS[haveUnit]/WEIGHT_UNITS[wantedUnit];
+        }
+        return [have, wanted];
+    }
+    function setDefaultMakeDate()
+    {
+        var date = new Date();
+        var year = date.getFullYear();
+        var month = date.getMonth()+1;
+        var day = date.getDate();
+        if(month < 10)
+        {
+            month = "0"+month
+        }
+        if(day < 10)
+        {
+            day = "0"+month
+        }
+        $("#datemade").val(year + "-" + month + "-" + day);
+    }
+    function setDefaultMakeTime()
+    {
+        var date = new Date();
+        var hour = date.getHours();
+        var minute = date.getMinutes();
+        $("#timemade").val(hour+":"+minute);
+    }
+    function makeRecipe()
+    {
+        if(!canMake)
+        {   
+            $("#madeMessage").attr("style", "color:red;")
+            $("#madeMessage").text("Cannot make, some ingredients out of stock.");
+            return;
+        }
+        theData={}
+        theData["username"] = $("#nameInput").val();
+        theData["date"] = $("#datemade").val();
+        theData["time"] = $("#timemade").val();
+        theData["recipe_id"] = "{{recipe.recipe_id}}";
+        
+        ingredients = []
+        $(".ingredientParagraph").each(function(){
+            wanted = Number($(this).children(".iquant").text());
+            have = Number($(this).children(".pquant").text());
+            wantedUnit = $(this).children(".iunit").text();
+            haveUnit = $(this).children(".punit").text();
+            iid = $(this).attr("id").split(" ")[1];
+            values = adjustForUnits(have, wanted, haveUnit, wantedUnit);
+            wanted = values[0];
+            have = values[1];
+            ingredients.push([iid, wanted]);
+        });
+        theData["ingredients[][]"] = ingredients
+        $.when($.ajax({
+            url:'/makeRecipe/',
+            type:'post',
+            data:theData,
+            success: function(response){
+                adjustIngredientQuantities();
+                //TODO: recipe made message
+            },
+            error: function(){
+                console.log("ERROR ERROR ERROR 2")
+            }
+        }));
+    }
+
+</script>
+
+
+<div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="theModal">{{recipe.title}}</h5>
+            <button type="button" class="close" aria-label="Close" onclick="$('#recipeModal').modal('hide')">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body container">
+            <div class="row">
+                <div class="col col-6">
+                    <p>{{recipe.description}}</p>
+                    <p>Author: {{recipe.user.username}}<p>
+                    <p>Prep Time: {{recipe.prep_time_minutes}} minutes</p>
+                    <p>Cook Time: {{recipe.cook_time_minutes}} minutes</p>
+                    <p>Total Time: {{recipe.total_time_minutes}} minutes</p>
+                    <p>Rating: {{recipe.rating_stars}}/5.0</p>
+                    <p>Review Count: {{recipe.review_count}}</p>
+                </div>
+                <div class="col col-6">
+                    <img class="img img-fluid" src="{{recipe.photo_url}}">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                
+                <div class="center" style="width: 300px;">
+                    <div class="input-group">
+                        <h6>Multiplier:&nbsp;&nbsp;</h6>
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-danger btn-number" id="recipeMinusButton" onclick="subOne()">
+                                <span class="glyphicon glyphicon-minus">-</span>
+                            </button>
+                        </span>
+                        <input id="recipeMultField" type="text" name="multiplier" class="form-control input-number" value="1" min="0.1" max="100" onfocus="fieldFocus()" onchange="fieldChange()">
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-success btn-number" id="recipePlusButton" onclick="addOne()">
+                                <span class="glyphicon glyphicon-plus">+</span>
+                            </button>
+                        </span>
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-secondary" id="recipeResetButton" onclick="resetMultiplier()">
+                                <span class="glyphicon glyphicon-plus">reset</span>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+
+
+                <h5>Ingredients:</h5>
+                <ul class="incredientList">
+                {% for x in ingredients%}
+                <li>
+                <p>
+                <div class="ingredientParagraph" id="{{recipe.recipe_id}} {{x.0.ingredient_id}} ingredient-{{forloop.counter}}">
+                    <span class="stockSymbol">✔️</span>
+                    <span class="iquant">{{x.0.quantity}}</span> 
+                    <span class="iunit">{{x.0.unit}}</span> 
+                    {{x.0.ingredient.name}}
+                    <span class="oquant" hidden="true">{{x.0.quantity}}</span>
+                    <span class="pquant" hidden="true">{{x.1.quantity}}</span>
+                    <span class="punit" hidden="true">{{x.1.unit}}</span>
+                </div>
+                </p>
+                </li>
+                {% endfor %}
+                </ul>
+                </div>
+                <div class="col">
+                <h5>Instructions:</h5>
+                <ol>
+                {% for x in instructions%}
+                <li>
+                <p>{{x}}</p>
+                </li>
+                {% endfor %}
+                </ol>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer justify-content-center">
+            <form action="javascript:void(0);" onSubmit="makeRecipe()">
+                <div class="row flex-row d-flex justify-content-between" >
+                    <div class="form-group col">
+                        <input type="text" class="form-control" id="nameInput" placeholder="Name" list="usernames" required>
+                        <datalist id = "usernames" hidden="true">
+                            {% for x in usernames %}
+                            <option>{{x}}</option>
+                            {% endfor %}
+                        </datalist>
+                    </div>
+                    <div class="form-group col">
+                        <input type="date" class="form-control" id="datemade" step="any">
+                    </div>
+                    <div class="form-group col">
+                        <input type="time" class="form-control" id="timemade" step="any">
+                    </div>
+                    <div class="form-group col">
+                        <button type="submit" class="btn btn-primary">Make Recipe</button>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col text-center">
+                        <h5 id="madeMessage">
+
+                        </h5>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
