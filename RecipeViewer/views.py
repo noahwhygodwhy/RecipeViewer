@@ -8,6 +8,22 @@ from django.utils import timezone
 from django.http import JsonResponse
 
 
+VOLUME_UNITS = {
+    "mililiter":1,
+    "teaspoon":4.92892,
+    "tablespoon":14.7868,
+    "fluid ounce":29.5735,
+    "cup":236.588,
+    "pint":473.176,
+    "quart":946.353,
+    "liter":1000,
+    "gallon":3785.41
+}
+WEIGHT_UNITS = {
+    "ounce":1,
+    "pound":16
+}
+
 def getIngredientRow(request, data={}):
     number = request.GET["rowIndex"]
     data["rowIndex"] = number
@@ -218,6 +234,29 @@ def makeView(request, data={}):
     data["nested"] = "makes.html"
     return render(request, "base.html", data)
 
+def theresEnough(ub, ing):
+
+    try:
+        have = ing.quantity
+        haveUnit = ing.unit
+
+        wanted = ub.quantity
+        wantedUnit = ub.unit
+
+        if wantedUnit == haveUnit:
+            return have >= wanted
+        elif wantedUnit in VOLUME_UNITS and haveUnit in VOLUME_UNITS:
+            have = have*VOLUME_UNITS[haveUnit]/VOLUME_UNITS[wantedUnit];
+        elif wantedUnit in WEIGHT_UNITS and haveUnit in WEIGHT_UNITS:
+            have = have*WEIGHT_UNITS[haveUnit]/WEIGHT_UNITS[wantedUnit];
+    except:
+        print("exception")
+        print("have:",have)
+        print("haveunit:",haveUnit)
+        print("wanted:",wanted)
+        print("wantedUnit",wantedUnit)
+
+    return have>=wanted
 
 def recipeView(request, data={}):
     if request.GET.__contains__("ingredient_id"):
@@ -229,6 +268,27 @@ def recipeView(request, data={}):
             recipes.append(u.recipe)
         data["recipes"] = recipes
         data["title"] = "All Recipes That Use " + Ingredients.objects.get(ingredient_id = iid).name.title()
+    elif request.GET.__contains__("view"):
+        if request.GET["view"] == "wcim":
+            recipes = dict()
+            print("start")
+            for r in Recipes.objects.all():
+                recipes[r.recipe_id] = [r, True]
+            print("step 1")
+            ingredients = Ingredients.objects.all()
+            print("step 1.1")
+            for u in Usedby.objects.all().select_related("ingredient"):
+                i = u.ingredient
+                if not theresEnough(u, i):
+                    recipes[u.recipe_id][1] = False
+            print("step 2")
+            actualList = list()
+            for r in recipes.values():
+                if r[1]:
+                    actualList.append(r[0])
+            print("step 3")
+            data["recipes"] = actualList
+            data["title"] = "What can I make?"
     else:
         data["title"] = "All Recipes"
         data["recipes"] = Recipes.objects.all()

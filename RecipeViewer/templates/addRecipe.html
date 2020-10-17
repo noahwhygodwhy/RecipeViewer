@@ -66,16 +66,10 @@
     function findUnitList(unit)
     {
         list = "#EACH_UNITS"
-        $("#SOLID_UNITS").children("option").each(function(i, v){
-            if(v.value== unit)
-            {
-                list="#SOLID_UNITS"
-            }
-        })
-        $("#LIQUID_UNITS").children("option").each(function(i, v){
+        $("#VOLUME_UNITS").children("option").each(function(i, v){
             if(v.value == unit)
             {
-                list="#LIQUID_UNITS"
+                list="#VOLUME_UNITS"
             }
         })
         $("#WEIGHT_UNITS").children("option").each(function(i, v){
@@ -154,14 +148,12 @@
     <option></option>
     <option>each</option>
 </datalist>
-<datalist id="SOLID_UNITS">
+<datalist id="VOLUME_UNITS">
+    <option>mililiter</option>
     <option>teaspoon</option>
     <option>tablespoon</option>
-    <option>cup</option>
-</datalist>
-<datalist id="LIQUID_UNITS">
-    <option>mililiter</option>
     <option>fluid ounce</option>
+    <option>cup</option>
     <option>pint</option>
     <option>quart</option>
     <option>liter</option>

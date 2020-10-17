@@ -11,7 +11,7 @@
                 console.log("ajaxing")
                 var recipe_id = $(this).attr('id')
                 $.ajax({
-                    url:'/getRecipeInfo',
+                    url:'/getRecipeInfo/',
                     type:'get',
                     data:{'recipe_id':recipe_id},
                     success: function(response){
@@ -61,6 +61,12 @@
 <div class="row">
     <div class="col">
         <h1>{{title}}</h1>
+    </div>
+    <div class="col">
+        <form action="/" method="get" class="float-right">
+            <input name="view" value="wcim" hidden="true">
+            <button class="btn btn-primary btn-lg mx-auto" type="submit" style="margin-top:.5rem;">What Can I make</button>
+        </form>
     </div>
     <div class="col">
         <form action="/addRecipe/" class="float-right">

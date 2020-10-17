@@ -1,18 +1,15 @@
 
 <script>
-    SOLID_UNITS = {
-        "teaspoon":1,
-        "tablespoon":3,
-        "cup":48
-    }
-    LIQUID_UNITS = {
+    VOLUME_UNITS = {
         "mililiter":1,
-        "fluid ounce":29.5735, 
+        "teaspoon":4.92892,
+        "tablespoon":14.7868,
+        "fluid ounce":29.5735,
+        "cup":236.588,
         "pint":473.176,
         "quart":946.353,
         "liter":1000,
         "gallon":3785.41
-
     }
     WEIGHT_UNITS = {
         "ounce":1,
@@ -138,26 +135,15 @@
 
     function incompatibleUnits(wantedUnit, haveUnit)
     {
-        if(wantedUnit in SOLID_UNITS)
+        if(wantedUnit in VOLUME_UNITS && !(haveUnit in VOLUME_UNITS))
         {
-            if(!(haveUnit in SOLID_UNITS))
-            {
-                return true;
-            }
+            return true;
+            
         }
-        if(wantedUnit in LIQUID_UNITS)
+        if(wantedUnit in WEIGHT_UNITS && !(haveUnit in WEIGHT_UNITS))
         {
-            if(!(haveUnit in LIQUID_UNITS))
-            {
-                return true;
-            }
-        }
-        if(wantedUnit in WEIGHT_UNITS)
-        {
-            if(!(haveUnit in WEIGHT_UNITS))
-            {
-                return true;
-            }
+            return true;
+            
         }
         if(wantedUnit == "" || haveUnit == "")
         {
@@ -177,15 +163,11 @@
         {
             return [have, Number.MAX_VALUE];
         }
-        if(wantedUnit in SOLID_UNITS)
+        if(wantedUnit in VOLUME_UNITS && haveUnit in VOLUME_UNITS)
         {
-            have = have*SOLID_UNITS[haveUnit]/SOLID_UNITS[wantedUnit];
+            have = have*VOLUME_UNITS[haveUnit]/VOLUME_UNITS[wantedUnit];
         }
-        if(wantedUnit in LIQUID_UNITS)
-        {
-            have = have*LIQUID_UNITS[haveUnit]/LIQUID_UNITS[wantedUnit];
-        }
-        if(wantedUnit in WEIGHT_UNITS)
+        if(wantedUnit in WEIGHT_UNITS && haveUnit in WEIGHT_UNITS)
         {
             have = have*WEIGHT_UNITS[haveUnit]/WEIGHT_UNITS[wantedUnit];
         }
