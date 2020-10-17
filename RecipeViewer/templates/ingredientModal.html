@@ -27,13 +27,13 @@ function usedInRecipes(iid)
                 <div class="row">
                     <p>Location: {{ingredient.location}}</p></br>
                 </div>
-                <div class="row">
+                {% comment %} <div class="row">
                     <button type="button" class="btn btn-primary">Save Changes</button>
-                </div>
+                </div> {% endcomment %}
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-primary" onclick="usedInRecipes('{{ingredient.ingredient_id}}')">Used In Recipe</button>
+            <button type="button" class="btn btn-primary" onclick="usedInRecipes('{{ingredient.ingredient_id}}')">Used In Recipes</button>
         </div>
     </div>
 </div>
