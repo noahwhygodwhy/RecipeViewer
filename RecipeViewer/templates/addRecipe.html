@@ -39,10 +39,10 @@
             success: function(response){
                 if(response["exists"])
                 {
-                    removeBorder(a)
                     unitlist = findUnitList(response["unit"])
-                    $("#ingredientFormRow-"+a).children().children(".ingName").addClass("border border-success")
                     $("#ingredientFormRow-"+a).children().children(".ingUnit").html($(unitlist).html())
+                    $("#ingredientFormRow-"+a).children().children(".ingLocation").val(response["location"])
+                    $("#ingredientFormRow-"+a).children().children(".ingLocation").attr("readonly", "readonly")
 
                     //god i hate this
                     $("#ingredientFormRow-"+a).children().children(".ingUnit").children("option:eq(0)").attr("selected", false)
@@ -56,9 +56,13 @@
                 }
                 else
                 {
-                    removeBorder(a)
-                    $("#ingredientFormRow-"+a).children().children(".ingName").addClass("border border-warning")
-                    $("#ingredientFormRow-"+a).children().children(".ingUnit").html("")
+                    $("#ingredientFormRow-"+a).children().children(".ingLocation").val("")
+                    $("#ingredientFormRow-"+a).children().children(".ingLocation").removeAttr("readonly")
+                    $("#ingredientFormRow-"+a).children().children(".ingUnit").html($("#ALL_UNITS").html())
+                    $("#ingredientFormRow-"+a).children().children(".ingUnit").children("option:eq(0)").attr("selected", false)
+                    $("#ingredientFormRow-"+a).children().children(".ingUnit").children("option:eq(1)").attr("selected", true)
+                    $("#ingredientFormRow-"+a).children().children(".ingUnit").children("option:eq(1)").attr("selected", false)
+                    $("#ingredientFormRow-"+a).children().children(".ingUnit").children("option:eq(0)").attr("selected", true)
                 }
             }
         });
@@ -129,7 +133,8 @@
             var name = $(ingredientRow).find("#ingNameField").val()
             var unit = $(ingredientRow).find("#ingUnitField").val()
             var quantity = $(ingredientRow).find("#ingQuantityField").val()
-            ingredients.push(name+"_"+unit+"_"+quantity)
+            var location = $(ingredientRow).find("#ingLocationField").val()
+            ingredients.push(name+"_"+unit+"_"+quantity+"_"+location)
         });
         dataDict["ingredients[]"] = ingredients;
 
@@ -147,6 +152,20 @@
 <datalist id="EACH_UNITS">
     <option></option>
     <option>each</option>
+</datalist>
+<datalist id="ALL_UNITS">
+    <option>each</option>
+    <option>mililiter</option>
+    <option>teaspoon</option>
+    <option>tablespoon</option>
+    <option>fluid ounce</option>
+    <option>cup</option>
+    <option>pint</option>
+    <option>quart</option>
+    <option>liter</option>
+    <option>gallon</option>
+    <option>ounce</option>
+    <option>pound</option>
 </datalist>
 <datalist id="VOLUME_UNITS">
     <option>mililiter</option>

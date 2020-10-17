@@ -74,9 +74,12 @@ def getIngredientExists(request, data={}):
     result = {}
     exists = Ingredients.objects.filter(name=request.GET["ingName"]).exists()
     unit = ""
+    location=""
     if(exists):
         unit = Ingredients.objects.get(name=request.GET["ingName"]).unit
-    return JsonResponse({"exists":exists, "unit":unit})
+        location = Ingredients.objects.get(name=request.GET["ingName"]).location
+        print("loc:",location)
+    return JsonResponse({"exists":exists, "unit":unit, "location":location})
 
 def getIngredientQuantity(request, data={}):
     try:
@@ -121,10 +124,14 @@ def addRecipe(request, data={}):
 
             for x in request.POST.getlist("ingredients[]"):
                 print(x)
-                [name, unit, quantity] = x.split("_")
+                [name, unit, quantity, location] = x.split("_")
                 if unit == "each":
                     unit = ""
-                ing = Ingredients.objects.get(name=name);
+                if Ingredients.objects.filter(name=name).exists():
+                    ing = Ingredients.objects.get(name=name);
+                else:
+                    ing = Ingredients(name=name, unit=unit, quantity=quantity, location=location, ingredient_id = uuid.uuid4())
+                    ing.save()
                 ub = Usedby(used_ingredient_id = uuid.uuid4(), 
                         recipe = r,
                         ingredient = ing,
