@@ -130,7 +130,7 @@ def addRecipe(request, data={}):
                 if Ingredients.objects.filter(name=name).exists():
                     ing = Ingredients.objects.get(name=name);
                 else:
-                    ing = Ingredients(name=name, unit=unit, quantity=quantity, location=location, ingredient_id = uuid.uuid4())
+                    ing = Ingredients(name=name, unit=unit, quantity=quantity, location=location.lower(), ingredient_id = uuid.uuid4())
                     ing.save()
                 ub = Usedby(used_ingredient_id = uuid.uuid4(), 
                         recipe = r,
@@ -159,7 +159,7 @@ def addIngredient(request, data={}):
         name = request.POST["name"]
         quantity = request.POST["quantity"]
         unit = request.POST["unit"]
-        location = request.POST["location"]
+        location = request.POST["location"].lower()
         nameGood=False
         try:
             Ingredients.objects.get(name = name)
