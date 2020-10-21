@@ -25,6 +25,7 @@ WEIGHT_UNITS = {
 }
 
 def getIngredientRow(request, data={}):
+    
     number = request.GET["rowIndex"]
     data["rowIndex"] = number
     return render(request, "ingredientRow.html", data)
