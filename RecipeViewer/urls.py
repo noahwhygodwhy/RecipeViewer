@@ -15,6 +15,7 @@ urlpatterns = [
     path('getIngredientRow/', views.getIngredientRow, name="getIngredientRow"),
     path('getIngredientExists/', views.getIngredientExists, name="getIngredientExists"),
     path('makes/', views.makeView, name='Makes'),
+    path('generateMakes/', views.generateMakesView, name="GenerateMakes")
     #path('analytics/', views.analyticsView, name='Analytics'),
     #path('users/', views.userView, name='Users'),
 ] 

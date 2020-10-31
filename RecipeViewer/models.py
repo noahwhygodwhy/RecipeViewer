@@ -8,11 +8,21 @@
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.db.models.aggregates import Count
+import random
 
 
 class Users(models.Model):
     user_id = models.UUIDField(primary_key=True)
     username = models.TextField(blank=True, null=True)
+
+    # def random(self, howMany):
+    #     count = self.aggregate(count=Count("user_id"))["count"]
+    #     toReturn = list()
+    #     for x in range(howMany):
+    #         randomIndex = random.randint(0, count-1)
+    #         toReturn.append(self.all()[randomIndex])
+    #     return toReturn
 
     class Meta:
         managed = True
@@ -45,6 +55,15 @@ class Recipes(models.Model):
     title = models.TextField()
     total_time_minutes = models.IntegerField()
     url = models.TextField()
+
+    # def random(self, howMany):
+    #     count = self.aggregate(count=Count("recipe_id"))["count"]
+    #     toReturn = list()
+    #     for x in range(howMany):
+    #         randomIndex = random.randint(0, count-1)
+    #         toReturn.append(self.all()[randomIndex])
+    #     return toReturn
+
 
     class Meta:
         managed = True
