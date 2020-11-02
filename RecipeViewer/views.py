@@ -379,3 +379,31 @@ def ingredientView(request):
 
     return render(request, "base.html", data)
 # Create your views here.
+
+def analyticsView(request):
+    labels = []
+    data = []
+
+    queryset = Ingredients.objects.order_by('-quantity')[:5]
+    for ingredient in queryset:
+        labels.append(ingredient.name)
+        data.append(ingredient.quantity)
+
+    return render(request, 'analytics.html', {
+        'labels': labels,
+        'data': data,
+    })
+
+def analyticsView2(request):
+    labels = []
+    data = []
+
+    queryset = Recipes.objects.order_by('-review_count')[:5]
+    for recipe in queryset:
+        labels.append(recipe.name)
+        data.append(recipe.review_count)
+
+    return render(request, 'analytics.html', {
+        'labels': labels,
+        'data': data,
+    })
