@@ -17,5 +17,7 @@ urlpatterns = [
     path('makes/', views.makeView, name='Makes'),
     path('generateMakes/', views.generateMakesView, name="GenerateMakes"),
     path('analytics/', views.analyticsView, name='Analytics'),
+    path('getTopFiveIngByQuant/', views.getTopFiveIngByQuant, name='getTopFiveIngByQuant'),
+    path('getTFRBRC/', views.getTFRBRC, name='getTFRBRC'),
     #path('users/', views.userView, name='Users'),
 ] 

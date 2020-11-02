@@ -1,33 +1,32 @@
-{% block content %}
-  <div id="container" style="width: 75%;">
-    <canvas id="pie-chart"></canvas>
-  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+
+
   <script>
-
-    var config = {
-      type: 'pie',
-      data: {
-        datasets: [{
-          data: {{ data|safe }},
-          backgroundColor: [
-            '#e37b7b', '#9ce37b', '#7be3c4', '#7bd2e3', '#987be3'
-          ],
-          label: 'Population'
-        }],
-        labels: {{ labels|safe }}
-      },
-      options: {
-        responsive: true
-      }
-    };
-
-    window.onload = function() {
-      var ctx = document.getElementById('pie-chart').getContext('2d');
-      window.myPie = new Chart(ctx, config);
-    };
-
+    $(document).ready(function(){
+        $.ajax({
+            url:'/getTopFiveIngByQuant/',
+            type:'get',
+            data:{},
+            success: function(response){
+                //console.log(response)
+                $("#chart1").html(response);
+            }
+        });
+        $.ajax({
+            url:'/getTFRBRC/',
+            type:'get',
+            data:{},
+            success: function(response){
+                $("#chart2").html(response);
+            }
+        });
+    });
   </script>
 
-{% endblock %}
+  <div class="row" id="row1">
+    <div class="col" id="chart1">
+    </div>
+    <div class="col" id="chart2">
+    </div>
+  </div>

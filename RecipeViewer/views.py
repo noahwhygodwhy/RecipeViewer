@@ -380,30 +380,37 @@ def ingredientView(request):
     return render(request, "base.html", data)
 # Create your views here.
 
-def analyticsView(request):
+
+
+def analyticsView(request, data={}):
+    data["nested"] = "analytics.html"
+    return render(request, 'base.html', data)
+
+
+
+def getTopFiveIngByQuant(request, data={}):
     labels = []
-    data = []
+    chartData = []
 
     queryset = Ingredients.objects.order_by('-quantity')[:5]
     for ingredient in queryset:
         labels.append(ingredient.name)
-        data.append(ingredient.quantity)
+        chartData.append(ingredient.quantity)
+    data["labels"] = labels
+    data["data"] = chartData
+    data["chartID"] = uuid.uuid4()
+    return render(request, 'pieChart.html', data)
 
-    return render(request, 'analytics.html', {
-        'labels': labels,
-        'data': data,
-    })
-
-def analyticsView2(request):
+#top five recipes by review count
+def getTFRBRC(request, data={}):
     labels = []
-    data = []
+    chartData = []
 
     queryset = Recipes.objects.order_by('-review_count')[:5]
     for recipe in queryset:
         labels.append(recipe.title)
-        data.append(recipe.review_count)
-
-    return render(request, 'analytics.html', {
-        'labels': labels,
-        'data': data,
-    })
+        chartData.append(recipe.review_count)
+    data["labels"] = labels
+    data["data"] = chartData
+    data["chartID"] = uuid.uuid4()
+    return render(request, 'pieChart.html', data)
