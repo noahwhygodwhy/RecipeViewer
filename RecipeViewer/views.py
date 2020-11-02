@@ -400,7 +400,7 @@ def analyticsView2(request):
 
     queryset = Recipes.objects.order_by('-review_count')[:5]
     for recipe in queryset:
-        labels.append(recipe.name)
+        labels.append(recipe.title)
         data.append(recipe.review_count)
 
     return render(request, 'analytics.html', {
