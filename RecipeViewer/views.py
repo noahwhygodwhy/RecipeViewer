@@ -401,6 +401,48 @@ def getTopFiveIngByQuant(request, data={}):
     data["chartID"] = uuid.uuid4()
     return render(request, 'pieChart.html', data)
 
+def getMakesPerUserGraph(request, data={}):
+    print("getMakesPerUser")
+    labels = list()
+    chartData = list()
+    users = dict()
+    user_ids = Makes.objects.values("user_id").annotate(entries=Count("user_id"))
+
+    counts = dict()
+    for x in user_ids:
+        makes = x["entries"]
+        if makes in counts:
+            counts[makes] += 1
+        else:
+            counts[makes] = 1   
+    dataTobeSorted = list()
+    for x in counts:
+        dataTobeSorted.append((x, counts[x]))
+    dataTobeSorted = sorted(dataTobeSorted)
+    mx = max(dataTobeSorted, key=lambda x:x[1])
+    
+    colors = "["
+    for x in dataTobeSorted:
+        labels.append(x[0])
+        chartData.append(x[1])
+        red = 250-x[0]*2
+        blue = 0+x[0]*4
+        green= 0
+        colors += '"#' + f'{red:02x}' + f'{green:02x}' + f'{blue:02x}' + '",'
+    colors.strip(",")
+    colors += "]"
+
+    data["backgroundColor"] = colors
+    data["labels"] = labels
+    data["data"] = chartData
+    data["chartID"] = uuid.uuid4()
+    return render(request, 'barGraph.html', data)
+
+    #counts is now a dict of Makes:How mnay people have that many makes
+
+
+    #todo:
+
 #top five recipes by review count
 def getTFRBRC(request, data={}):
     labels = []

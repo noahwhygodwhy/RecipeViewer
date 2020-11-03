@@ -21,12 +21,24 @@
                 $("#chart2").html(response);
             }
         });
+        $.ajax({
+            url:'/getMakesPerUserGraph/',
+            type:'get',
+            data:{},
+            success: function(response){
+                $("#chart3").html(response);
+            }
+        });
     });
   </script>
 
-  <div class="row" id="row1">
+  <div class="row">
     <div class="col" id="chart1">
     </div>
     <div class="col" id="chart2">
+    </div>
+  </div>
+  <div class="row">
+    <div class="col" id="chart3">
     </div>
   </div>

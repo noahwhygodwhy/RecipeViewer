@@ -8,14 +8,12 @@
     
     $(document).ready(function(){
       var config = {
-        type: 'pie',
+        type: 'bar',
         data: {
           datasets: [{
             data: {{ data|safe }},
-            backgroundColor: [
-              '#e37b7b', '#9ce37b', '#7be3c4', '#7bd2e3', '#987be3'
-            ],
-            label: 'Population'
+            backgroundColor: {{backgroundColor|safe}},
+            label: 'Average Makes Per Person'
           }],
           labels: {{ labels|safe }}
         },
@@ -24,7 +22,7 @@
         }
       };
       var ctx = document.getElementById('pie-chart-{{chartID}}').getContext('2d');
-      window.myPie = new Chart(ctx, config);
+      window.myGraph = new Chart(ctx, config);
     });
 
   </script>
