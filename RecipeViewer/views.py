@@ -372,7 +372,9 @@ def ingredientView(request):
 
     return render(request, "base.html", data)
 
-
+class makesViewData(BaseDatatableView):
+    columns = ["name", "quantity", "unit", "location", "ingredient_id"]
+    
 class ingredientViewData(BaseDatatableView):
     columns = ["name", "quantity", "unit", "location", "ingredient_id"]
     # hidden_columns = ["ingredient_id"]
