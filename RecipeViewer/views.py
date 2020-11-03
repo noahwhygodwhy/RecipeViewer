@@ -375,13 +375,14 @@ def ingredientView(request):
 
 class ingredientViewData(BaseDatatableView):
     columns = ["name", "quantity", "unit", "location", "ingredient_id"]
+    # hidden_columns = ["ingredient_id"]
     order_columns = ["name", "quantity", "unit", "location", "ingredient_id"]
     
     model = Ingredients
 
     def render_column(self, row, column):
         return super(ingredientViewData, self).render_column(row, column)
-        
+
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
         if search:

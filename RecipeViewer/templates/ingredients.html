@@ -49,14 +49,16 @@
             "processing":true,
             "serverSide":true,
             "ajax":{"url":"/ingredientViewData/"},//, "dataSrc":""},//, "dataSrc":"Data"}
-            "columns":[{"data":"name"}, {"data":"quantity"}, {"data":"unit"}, {"data":"location"}, {"data":"ingredient_id"}],
+            "columns":[{"data":"name"}, {"data":"quantity"}, {"data":"unit"}, {"data":"location"}, {"data":"ingredient_id", "visible":false}],
+            
             "createdRow":function(row, data, index){
+                console.log(data["ingredient_id"])
                 console.log("HERE2")
                 console.log(row)
                 console.log(data)
                 console.log(index)
-                var quantity = $('td',row).eq(1).html()
-                var ingredient_id = $('td',row).eq(4).html()
+                var quantity = data["quantity"]
+                var ingredient_id = data["ingredient_id"]
                 $(row).addClass("class", "ingredientRow")
                 $(row).attr("id", "row_"+ingredient_id)
                 $('td',row).eq(1).html(makeQuantityForm(ingredient_id,quantity))
