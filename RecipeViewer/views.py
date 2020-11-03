@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.http import JsonResponse
 from django.db.models.aggregates import Count
 from django.db.models import Prefetch
+from django_datatables_view.base_datatable_view import BaseDatatableView
 
 import random
 import datetime
@@ -309,28 +310,20 @@ def makeView(request, data={}):
     return render(request, "base.html", data)
 
 def theresEnough(ub, ing):
+    have = ing.quantity
+    haveUnit = ing.unit
 
-    try:
-        have = ing.quantity
-        haveUnit = ing.unit
+    wanted = ub.quantity
+    wantedUnit = ub.unit
 
-        wanted = ub.quantity
-        wantedUnit = ub.unit
-
-        if wantedUnit == haveUnit:
-            return have >= wanted
-        elif wantedUnit in VOLUME_UNITS and haveUnit in VOLUME_UNITS:
-            have = have*VOLUME_UNITS[haveUnit]/VOLUME_UNITS[wantedUnit];
-        elif wantedUnit in WEIGHT_UNITS and haveUnit in WEIGHT_UNITS:
-            have = have*WEIGHT_UNITS[haveUnit]/WEIGHT_UNITS[wantedUnit];
-    except:
-        print("exception")
-        print("have:",have)
-        print("haveunit:",haveUnit)
-        print("wanted:",wanted)
-        print("wantedUnit",wantedUnit)
-
+    if wantedUnit == haveUnit:
+        return have >= wanted
+    elif wantedUnit in VOLUME_UNITS and haveUnit in VOLUME_UNITS:
+        have = have*VOLUME_UNITS[haveUnit]/VOLUME_UNITS[wantedUnit];
+    elif wantedUnit in WEIGHT_UNITS and haveUnit in WEIGHT_UNITS:
+        have = have*WEIGHT_UNITS[haveUnit]/WEIGHT_UNITS[wantedUnit];
     return have>=wanted
+
 
 def recipeView(request, data={}):
     if request.GET.__contains__("ingredient_id"):
@@ -378,9 +371,22 @@ def ingredientView(request):
     data["nested"] = "ingredients.html"
 
     return render(request, "base.html", data)
-# Create your views here.
 
 
+class ingredientViewData(BaseDatatableView):
+    columns = ["name", "quantity", "unit", "location", "ingredient_id"]
+    order_columns = ["name", "quantity", "unit", "location", "ingredient_id"]
+    
+    model = Ingredients
+
+    def render_column(self, row, column):
+        return super(ingredientViewData, self).render_column(row, column)
+        
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(name__icontains=search)
+        return qs
 
 def analyticsView(request, data={}):
     data["nested"] = "analytics.html"
