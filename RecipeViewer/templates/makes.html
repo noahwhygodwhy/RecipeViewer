@@ -1,12 +1,34 @@
 <script type="text/javascript">
+    
+    
+    function getSearchTerm()
+    {
+        l = window.location.href.slice(window.location.href.indexOf('?') + 1).split('=')[1];
+        if(l == undefined)
+        {
+            l = ""
+        }
+        return l
+    }
+    function getSearchType()
+    {
+        l = window.location.href.slice(window.location.href.indexOf('?') + 1).split('=')[0];
+        if(l == undefined)
+        {
+            l = ""
+        }
+        return l
+    }
+    
     $(document).ready(function(){
         $('#makesTable').DataTable({
             "processing":true,
             "serverSide":true,
-            "ajax":{"url":"/makesViewData/"},//, "dataSrc":""},//, "dataSrc":"Data"}
-            "columns":[{"data":"user"}, {"data":"recipe"}, {"data":"datetime"}],
+            "ajax":{"url":"/makesViewData/", "data":{"searchType":getSearchType(), "searchTerm":getSearchTerm()}},//, "dataSrc":""},//, "dataSrc":"Data"}
+            "columns":[{"data":"user"}, {"data":"recipe"}, {"data":"datetime"}, {"data":"user_id", visible:false}, {"data":"recipe_id", visible:false}],
             "createdRow":function(row, data, index){
-                 console.log(data)
+                $("td", row).eq(0).html("<a href='/makes/?user=" + data["user_id"] + "'>" + data["user"] + "</a>")
+                $("td", row).eq(1).html("<a href='/makes/?recipe=" + data["recipe_id"] + "'>" + data["recipe"] + "</a>")
              }
         });
 

@@ -48,10 +48,6 @@
             "serverSide":true,
             "ajax": {"url":"/recipeViewData/", "data":{"searchType":getSearchType(), "searchTerm":getSearchTerm()}},//, "dataSrc":""},//, "dataSrc":"Data"}
             "columns":[{"data":"title"}, {"data":"description"}, {"data":"rating"}, {"data":"url"}, {"data":"recipe_id", "visible":false}],
-            /*"initComplete": function () {
-                console.log("search term: " + getSearchTerm())
-                this.api().search(getSearchTerm()).draw()
-            },*/
             "createdRow":function(row, data, index){
             addModalHandler($(row), data["recipe_id"])
             },

@@ -75,11 +75,8 @@
         {
             "processing":true,
             "serverSide":true,
-            "ajax":{"url":"/ingredientViewData/", "data":{"searchType":getSearchType()}},//, "dataSrc":""},//, "dataSrc":"Data"}
+            "ajax":{"url":"/ingredientViewData/", "data":{"searchType":getSearchType(), "searchTerm":getSearchTerm()}},//, "dataSrc":""},//, "dataSrc":"Data"}
             "columns":[{"data":"name"}, {"data":"quantity"}, {"data":"unit"}, {"data":"location"}, {"data":"ingredient_id", "visible":false}],
-            "initComplete": function () {
-                this.api().search(getSearchTerm()).draw();
-            },
             "createdRow":function(row, data, index){
                 var quantity = data["quantity"]
                 var ingredient_id = data["ingredient_id"]
