@@ -373,11 +373,24 @@ def ingredientView(request):
     return render(request, "base.html", data)
 
 class makesViewData(BaseDatatableView):
-    # columns = ["user", "recipe_id", "datetime"]
-    
+    columns = ["user", "recipe", "datetime"]
+    # datatable_options = {
+    #         'columns': [
+    #             'user_id',
+    #             'recipe_id',
+    #             'datetime'
+    #         ],
+    #     }
     model = Makes
     
     def render_column(self, row, column):
+        # print("row:",type(row))
+        # print("col:", type(column))
+        # print(column)
+        if column == "recipe":
+            return row.recipe.title
+        if column == "user":
+            return row.user.username
         return super(makesViewData, self).render_column(row, column)
 
     def filter_queryset(self, qs):
