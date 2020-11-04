@@ -31,64 +31,63 @@ WEIGHT_UNITS = {
 }
 
 
-def getRandomDates(count):
-    dates = list()
-    for i in range(count):
-        year = random.randint(2010, 2020)
-        month = random.randint(1, 12)
-        day = random.randint(1, 28)
-        hour = random.randint(0, 23)
-        minute = random.randint(0, 59)
-        second = random.randint(0, 59)
-        t = timezone.make_aware(timezone.datetime(year, month, day, hour, minute, second))
-        dates.append(t)
-    return dates
-
-        
 
 
 
-@csrf_exempt
-def generateMakesView(request, data={}):
-    data["good"] = "False"
-    print("generateMakesView")
-    try:
-        if request.method == "POST":
-            print("it's a post")
-            howMany = int(request.POST["makeCount"])
-            for k in range(int(howMany/100)+1):
-                print("doing the", k, "th howmany")
-                randRecipes = list()
-                count = Recipes.objects.aggregate(count=Count("recipe_id"))["count"]
-                for x in range(100):
-                    print("getting recipe", x)
-                    randomIndex = random.randint(0, count-1)
-                    randRecipes.append(Recipes.objects.all()[randomIndex])
+# def getRandomDates(count):
+#     dates = list()
+#     for i in range(count):
+#         year = random.randint(2010, 2020)
+#         month = random.randint(1, 12)
+#         day = random.randint(1, 28)
+#         hour = random.randint(0, 23)
+#         minute = random.randint(0, 59)
+#         second = random.randint(0, 59)
+#         t = timezone.make_aware(timezone.datetime(year, month, day, hour, minute, second))
+#         dates.append(t)
+#     return dates
+
+# @csrf_exempt
+# def generateMakesView(request, data={}):
+#     data["good"] = "False"
+#     print("generateMakesView")
+#     try:
+#         if request.method == "POST":
+#             print("it's a post")
+#             howMany = int(request.POST["makeCount"])
+#             for k in range(int(howMany/100)+1):
+#                 print("doing the", k, "th howmany")
+#                 randRecipes = list()
+#                 count = Recipes.objects.aggregate(count=Count("recipe_id"))["count"]
+#                 for x in range(100):
+#                     print("getting recipe", x)
+#                     randomIndex = random.randint(0, count-1)
+#                     randRecipes.append(Recipes.objects.all()[randomIndex])
                 
-                randUsers = list()
-                count = Users.objects.aggregate(count=Count("user_id"))["count"]
-                for x in range(100):
-                    print("getting user",x)
-                    randomIndex = random.randint(0, count-1)
-                    randUsers.append(Users.objects.all()[randomIndex])
+#                 randUsers = list()
+#                 count = Users.objects.aggregate(count=Count("user_id"))["count"]
+#                 for x in range(100):
+#                     print("getting user",x)
+#                     randomIndex = random.randint(0, count-1)
+#                     randUsers.append(Users.objects.all()[randomIndex])
 
-                dates = getRandomDates(count)
+#                 dates = getRandomDates(count)
 
-                for i in range(100):
-                    print("i:",i)
-                    m = Makes(
-                        meal_id=uuid.uuid4(),
-                        datetime=dates[i],
-                        user = randUsers[i],
-                        recipe=randRecipes[i])
-                    m.save()
+#                 for i in range(100):
+#                     print("i:",i)
+#                     m = Makes(
+#                         meal_id=uuid.uuid4(),
+#                         datetime=dates[i],
+#                         user = randUsers[i],
+#                         recipe=randRecipes[i])
+#                     m.save()
                     
-            data["good"] = "True"
-    except Exception as e:
-        print(e)
-        data["good"] = "False"
-    data["nested"] = "generateMakesView.html"
-    return render(request, "base.html", data)
+#             data["good"] = "True"
+#     except Exception as e:
+#         print(e)
+#         data["good"] = "False"
+#     data["nested"] = "generateMakesView.html"
+#     return render(request, "base.html", data)
 
 
 def getIngredientRow(request, data={}):
