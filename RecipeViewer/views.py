@@ -90,13 +90,15 @@ WEIGHT_UNITS = {
 #     return render(request, "base.html", data)
 
 
-def getIngredientRow(request, data={}):
-    
+
+# returns a rendered ingerdientRow for new recipe generation
+def getIngredientRow(request, data={}):    
     number = request.GET["rowIndex"]
     data["rowIndex"] = number
     return render(request, "ingredientRow.html", data)
     
 
+#handles the POST to Make a recipe (not a new recipe).
 @csrf_exempt
 def makeRecipe(request, data={}):
     ings = request.POST.getlist("ingredients[][]")
@@ -136,7 +138,7 @@ def makeRecipe(request, data={}):
         print(e)
         return HttpResponse(False)
 
-
+#returns whether or not an ingredient exists, pretty self explanetory 
 def getIngredientExists(request, data={}):
     result = {}
     exists = Ingredients.objects.filter(name=request.GET["ingName"]).exists()
@@ -148,6 +150,8 @@ def getIngredientExists(request, data={}):
         print("loc:",location)
     return JsonResponse({"exists":exists, "unit":unit, "location":location})
 
+
+#duh
 def getIngredientQuantity(request, data={}):
     try:
         iid = request.GET["ingredient_id"]
@@ -158,10 +162,9 @@ def getIngredientQuantity(request, data={}):
     return HttpResponse(quant)
 
 
-
+#this is the one that handles posts for actually making a new recipe, not "Make"ing an existing reicpe.
 @csrf_exempt
 def addRecipe(request, data={}):
-
     data["message"] = [True, ""]
     if request.method == "POST":
         try:
@@ -219,9 +222,9 @@ def addRecipe(request, data={}):
 
 
 
+#This handles making of new ingredients
 @csrf_exempt
 def addIngredient(request, data={}):
-
     if request.method == "POST":
         name = request.POST["name"]
         quantity = request.POST["quantity"]
@@ -274,7 +277,6 @@ def recipeDetails(request, data={}):
     return render(request, "recipeModal.html", data)
 
 def userView(request, data={}):
-    
     users = Users.objects.all()
     threeData = list()
     for u in users:
@@ -288,24 +290,16 @@ def userView(request, data={}):
 
 def makeView(request, data={}):
 
-    # if request.GET.__contains__("user_id"):
-    #     if(Users.objects.filter(user_id=request.GET["user_id"]).exists()):
-    #         user = Users.objects.get(user_id=request.GET["user_id"])
-    #         makes = Makes.objects.filter(user = user)
-    #         makes = makes
-    #         data["title"] = "All Makes By " + user.username
-    #     else:
-    #         data["title"] = "All Makes"
-    #         # makes = Makes.objects.all().prefetch_related(Prefetch("recipes", to_attr="title")).select_related("user")#TODO HERETODAY   
-    #         makes = Makes.objects.all()
-    # else:
-    #     data["title"] = "All Makes"
-    #     makes = Makes.objects.all()
-    # threeData = list()
-    # for x in makes:
-    #     threeData.append({"date":x.datetime,"title":x.recipe.title, "recipe_id":x.recipe.recipe_id, "username":x.user.username, "user_id":x.user.user_id})
-
-    # data["threeData"] = threeData
+    data["title"] = "All Makes"
+    if request.GET.__contains__("user"):
+        user_id = request.GET["user"]
+        username = Users.objects.get(user_id=user_id).username
+        data["title"] = "All Makes by " + username
+    elif request.GET.__contains__("recipe"):
+        recipe_id = request.GET["recipe"]
+        title = Recipes.objects.get(recipe_id=recipe_id).title
+        data["title"] = "All Makes of " + title
+    
     data["nested"] = "makes.html"
     return render(request, "base.html", data)
 
