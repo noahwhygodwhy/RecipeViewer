@@ -398,13 +398,15 @@ class recipeViewData(BaseDatatableView):
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
         searchType = self.request.GET.get('searchType', None)
+        searchTerm = self.request.GET.get('searchTerm', None)
         print(search)
         print(searchType)
-        if search or not searchType == "":
+        print(searchTerm)
+        if search or not searchTerm == "":
             print('search')
-            if searchType == "ingredient_id":
-                theUUID = uuid.UUID(search)
-                x = Usedby.objects.filter(ingredient_id=search).values("recipe_id") #this probably won't work
+            if searchType == "ingredient_id" and searchTerm:
+                theUUID = uuid.UUID(searchTerm)
+                x = Usedby.objects.filter(ingredient_id=searchTerm).values("recipe_id") #this probably won't work
                 qs = qs.filter(recipe_id__in=x)
                 print("here2")
             elif searchType == "wcim":

@@ -34,9 +34,10 @@
     {
         l = window.location.href.slice(window.location.href.indexOf('?') + 1).split('=')[0];
         if(l == undefined)
-        {
+        {   
             l = ""
         }
+        console.log("returning", l)
         return l
     }
     $(document).ready(function(){
@@ -45,11 +46,12 @@
         {
             "processing":true,
             "serverSide":true,
-            "ajax":{"url":"/recipeViewData/", "data":{"searchType":getSearchType(),}},//, "dataSrc":""},//, "dataSrc":"Data"}
+            "ajax": {"url":"/recipeViewData/", "data":{"searchType":getSearchType(), "searchTerm":getSearchTerm()}},//, "dataSrc":""},//, "dataSrc":"Data"}
             "columns":[{"data":"title"}, {"data":"description"}, {"data":"rating"}, {"data":"url"}, {"data":"recipe_id", "visible":false}],
-            "initComplete": function () {
-                this.api().search(getSearchTerm()).draw().draw()
-            },
+            /*"initComplete": function () {
+                console.log("search term: " + getSearchTerm())
+                this.api().search(getSearchTerm()).draw()
+            },*/
             "createdRow":function(row, data, index){
             addModalHandler($(row), data["recipe_id"])
             },

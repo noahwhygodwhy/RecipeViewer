@@ -60,14 +60,22 @@
         }
         return l
     }
-            
-    $(document).ready(function()
+    function getSearchType()
     {
+        l = window.location.href.slice(window.location.href.indexOf('?') + 1).split('=')[0];
+        if(l == undefined)
+        {
+            l = ""
+        }
+        return l
+    }
+            
+    $(document).ready(function(){
         $('#ingredienttable').DataTable(
         {
             "processing":true,
             "serverSide":true,
-            "ajax":{"url":"/ingredientViewData/"},//, "dataSrc":""},//, "dataSrc":"Data"}
+            "ajax":{"url":"/ingredientViewData/", "data":{"searchType":getSearchType()}},//, "dataSrc":""},//, "dataSrc":"Data"}
             "columns":[{"data":"name"}, {"data":"quantity"}, {"data":"unit"}, {"data":"location"}, {"data":"ingredient_id", "visible":false}],
             "initComplete": function () {
                 this.api().search(getSearchTerm()).draw();
