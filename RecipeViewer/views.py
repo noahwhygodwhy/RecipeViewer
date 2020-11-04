@@ -451,15 +451,18 @@ def getTopUsedIngredients(request, data={}):
     ingredient_ids = ingredient_ids[0:100]
 
     colors = "["
+    i = 0
     for x in ingredient_ids:
+        
         labels.append(x["name"])
         chartData.append(x["entries"])
         # red = 250-x["entries"]*2
         # blue = 0+x["entries"]*4
-        red=255
-        blue = 125
-        green= 0
+        red=0
+        blue = min(255, 120+i)
+        green= min(255, 200-i)
         
+        i+=1
         colors += '"#' + f'{red:02x}' + f'{green:02x}' + f'{blue:02x}' + '",'
     colors.strip(",")
     colors += "]"
