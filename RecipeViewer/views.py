@@ -288,24 +288,24 @@ def userView(request, data={}):
 
 def makeView(request, data={}):
 
-    if request.GET.__contains__("user_id"):
-        if(Users.objects.filter(user_id=request.GET["user_id"]).exists()):
-            user = Users.objects.get(user_id=request.GET["user_id"])
-            makes = Makes.objects.filter(user = user)
-            makes = makes
-            data["title"] = "All Makes By " + user.username
-        else:
-            data["title"] = "All Makes"
-            # makes = Makes.objects.all().prefetch_related(Prefetch("recipes", to_attr="title")).select_related("user")#TODO HERETODAY   
-            makes = Makes.objects.all()
-    else:
-        data["title"] = "All Makes"
-        makes = Makes.objects.all()
-    threeData = list()
-    for x in makes:
-        threeData.append({"date":x.datetime,"title":x.recipe.title, "recipe_id":x.recipe.recipe_id, "username":x.user.username, "user_id":x.user.user_id})
+    # if request.GET.__contains__("user_id"):
+    #     if(Users.objects.filter(user_id=request.GET["user_id"]).exists()):
+    #         user = Users.objects.get(user_id=request.GET["user_id"])
+    #         makes = Makes.objects.filter(user = user)
+    #         makes = makes
+    #         data["title"] = "All Makes By " + user.username
+    #     else:
+    #         data["title"] = "All Makes"
+    #         # makes = Makes.objects.all().prefetch_related(Prefetch("recipes", to_attr="title")).select_related("user")#TODO HERETODAY   
+    #         makes = Makes.objects.all()
+    # else:
+    #     data["title"] = "All Makes"
+    #     makes = Makes.objects.all()
+    # threeData = list()
+    # for x in makes:
+    #     threeData.append({"date":x.datetime,"title":x.recipe.title, "recipe_id":x.recipe.recipe_id, "username":x.user.username, "user_id":x.user.user_id})
 
-    data["threeData"] = threeData
+    # data["threeData"] = threeData
     data["nested"] = "makes.html"
     return render(request, "base.html", data)
 
@@ -366,15 +366,26 @@ def recipeView(request, data={}):
 def ingredientView(request):
     data={}
 
-    data["name"] = "noah"
-    data["ingredients"] = Ingredients.objects.all()
+    # data["name"] = "noah"
+    # data["ingredients"] = Ingredients.objects.all()
     data["nested"] = "ingredients.html"
 
     return render(request, "base.html", data)
 
 class makesViewData(BaseDatatableView):
-    columns = ["name", "quantity", "unit", "location", "ingredient_id"]
+    columns = ["user_id", "recipe_id", "datetime"]
     
+    model = Makes
+    
+    def render_column(self, row, column):
+        return super(makesViewData, self).render_column(row, column)
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(name__icontains=search)
+        return qs
+
 class ingredientViewData(BaseDatatableView):
     columns = ["name", "quantity", "unit", "location", "ingredient_id"]
     # hidden_columns = ["ingredient_id"]
