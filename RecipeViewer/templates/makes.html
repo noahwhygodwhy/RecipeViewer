@@ -4,7 +4,7 @@
             "processing":true,
             "serverSide":true,
             "ajax":{"url":"/makesViewData/"},//, "dataSrc":""},//, "dataSrc":"Data"}
-            "columns":[{"data":"user"}, {"data":"recipe"}, {"data":"datetime"}],
+            "columns":[{"data":"user__username"}, {"data":"recipe"}, {"data":"datetime"}],
              "createdRow":function(row, data, index){
                  console.log(data)
                  console.log(data["user"]["username"])

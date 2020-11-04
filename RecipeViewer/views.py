@@ -373,7 +373,7 @@ def ingredientView(request):
     return render(request, "base.html", data)
 
 class makesViewData(BaseDatatableView):
-    columns = ["user_id", "recipe_id", "datetime"]
+    # columns = ["user", "recipe_id", "datetime"]
     
     model = Makes
     
