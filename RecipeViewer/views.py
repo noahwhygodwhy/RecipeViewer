@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.http import JsonResponse
 from django.db.models.aggregates import Count
 from django.db.models import Prefetch
+from django.db.models import Q
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
 import random
@@ -365,28 +366,15 @@ def recipeView(request, data={}):
 
 def ingredientView(request):
     data={}
-
-    # data["name"] = "noah"
-    # data["ingredients"] = Ingredients.objects.all()
     data["nested"] = "ingredients.html"
-
     return render(request, "base.html", data)
 
 class makesViewData(BaseDatatableView):
     columns = ["user", "recipe", "datetime"]
-    # datatable_options = {
-    #         'columns': [
-    #             'user_id',
-    #             'recipe_id',
-    #             'datetime'
-    #         ],
-    #     }
+    order_columns = ["user", "recipe", "datetime"]
     model = Makes
     
     def render_column(self, row, column):
-        # print("row:",type(row))
-        # print("col:", type(column))
-        # print(column)
         if column == "recipe":
             return row.recipe.title
         if column == "user":
@@ -396,14 +384,12 @@ class makesViewData(BaseDatatableView):
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
         if search:
-            qs = qs.filter(name__icontains=search)
+            qs = qs.filter(Q(user__username__icontains=search) | Q(recipe__title__icontains=search) | Q(datetime__icontains=search))
         return qs
 
 class ingredientViewData(BaseDatatableView):
     columns = ["name", "quantity", "unit", "location", "ingredient_id"]
-    # hidden_columns = ["ingredient_id"]
     order_columns = ["name", "quantity", "unit", "location", "ingredient_id"]
-    
     model = Ingredients
 
     def render_column(self, row, column):
