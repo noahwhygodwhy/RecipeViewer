@@ -44,13 +44,34 @@
             }
         });
     }
-    $(document).ready(function(){
-        $('#ingredienttable').DataTable({
+    /*function(){
+                console.log("location:" + location)
+                return "asdf"
+            },*/
+            /*"initComplete": function () {
+                this.api().search("asdf").draw();
+            }*/
+    function getSearchTerm()
+    {
+        l = window.location.href.slice(window.location.href.indexOf('?') + 1).split('=')[1];
+        if(l == undefined)
+        {
+            l = ""
+        }
+        return l
+    }
+            
+    $(document).ready(function()
+    {
+        $('#ingredienttable').DataTable(
+        {
             "processing":true,
             "serverSide":true,
             "ajax":{"url":"/ingredientViewData/"},//, "dataSrc":""},//, "dataSrc":"Data"}
             "columns":[{"data":"name"}, {"data":"quantity"}, {"data":"unit"}, {"data":"location"}, {"data":"ingredient_id", "visible":false}],
-            
+            "initComplete": function () {
+                this.api().search(getSearchTerm()).draw();
+            },
             "createdRow":function(row, data, index){
                 console.log(data["ingredient_id"])
                 console.log("HERE2")
@@ -64,21 +85,21 @@
                 $(row).attr("id", "row_"+ingredient_id)
                 $('td',row).eq(1).html(makeQuantityForm(ingredient_id,quantity))
                 //addModalHandler(row)
-            }
+               },
         });
 
         //datatableview.initialize($('#ingredienttable'));
 
         $('.dataTables_length').addClass('bs-select');
 
-        $(document).click(function(e)
-        {
+        $(document).click(function(e){
             if (!$(e.target).closest('.modal-content').length) {
                 $('#ingredientModal').modal('hide');  
             }
             
         });
     });
+
     function selectionExists()
     {
         if(window.getSelection){

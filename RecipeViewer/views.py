@@ -382,6 +382,7 @@ class makesViewData(BaseDatatableView):
         return super(makesViewData, self).render_column(row, column)
 
     def filter_queryset(self, qs):
+        print(self.request.GET)
         search = self.request.GET.get('search[value]', None)
         if search:
             qs = qs.filter(Q(user__username__icontains=search) | Q(recipe__title__icontains=search) | Q(datetime__icontains=search))
