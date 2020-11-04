@@ -1,4 +1,4 @@
-from RecipeViewer.views import ingredientViewData, makesViewData
+from RecipeViewer.views import ingredientViewData, makesViewData, recipeViewData
 from django.urls import path
 
 from . import views
@@ -23,5 +23,6 @@ urlpatterns = [
     path('getMakesPerUserGraph/', views.getMakesPerUserGraph, name='getMakesPerUserGraph'),
     path('ingredientViewData/', ingredientViewData.as_view(), name='ingredientViewData'),
     path('makesViewData/', makesViewData.as_view(), name='makesViewData'),
+    path('recipeViewData/', recipeViewData.as_view(), name='recipeViewData'),
     #path('users/', views.userView, name='Users'),
 ] 

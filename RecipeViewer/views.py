@@ -260,7 +260,7 @@ def ingredientDetails(request, data={}):
 
 def recipeDetails(request, data={}):
 
-    recipe_id = request.GET["recipe_id"].split("_")[1]
+    recipe_id = request.GET["recipe_id"]
     data["recipe"] = Recipes.objects.get(recipe_id=recipe_id)
     data["recipe"].title = data["recipe"].title.title()
     ingredients = Usedby.objects.filter(recipe=recipe_id)
@@ -329,33 +329,9 @@ def theresEnough(ub, ing):
 def recipeView(request, data={}):
     if request.GET.__contains__("ingredient_id"):
         iid = request.GET["ingredient_id"]
-        print("hi")
-        usedbys = Usedby.objects.filter(ingredient_id = iid)
-        recipes=list()
-        for u in usedbys:
-            recipes.append(u.recipe)
-        data["recipes"] = recipes
         data["title"] = "All Recipes That Use " + Ingredients.objects.get(ingredient_id = iid).name.title()
     elif request.GET.__contains__("view"):
         if request.GET["view"] == "wcim":
-            recipes = dict()
-            print("start")
-            for r in Recipes.objects.all():
-                recipes[r.recipe_id] = [r, True]
-            print("step 1")
-            ingredients = Ingredients.objects.all()
-            print("step 1.1")
-            for u in Usedby.objects.all().select_related("ingredient"):
-                i = u.ingredient
-                if not theresEnough(u, i):
-                    recipes[u.recipe_id][1] = False
-            print("step 2")
-            actualList = list()
-            for r in recipes.values():
-                if r[1]:
-                    actualList.append(r[0])
-            print("step 3")
-            data["recipes"] = actualList
             data["title"] = "What can I make?"
     else:
         data["title"] = "All Recipes"
@@ -399,7 +375,60 @@ class ingredientViewData(BaseDatatableView):
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
         if search:
-            qs = qs.filter(name__icontains=search)
+            try:
+                theUUID = uuid.UUID(search)
+                x = Usedby.objects.filter(ingredient_id=search).values("recipe_id") #this probably won't work
+                qs = qs.filter(recipe_id__in=x)
+                print("no exception")
+            except ValueError as e:
+                print("exeption", e)
+                x = Usedby.objects.none()
+                qs = qs.filter(Q(name__icontains=search))
+
+        return qs
+
+class recipeViewData(BaseDatatableView):
+    columns = ["title", "description", "rating", "url", "recipe_id"]
+    order_columns = ["title", "description", "rating", "url", "recipe_id"]
+    model = Recipes
+
+    def render_column(self, row, column):
+        return super(recipeViewData, self).render_column(row, column)
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        searchType = self.request.GET.get('searchType', None)
+        print(search)
+        print(searchType)
+        if search or not searchType == "":
+            print('search')
+            if searchType == "ingredient_id":
+                theUUID = uuid.UUID(search)
+                x = Usedby.objects.filter(ingredient_id=search).values("recipe_id") #this probably won't work
+                qs = qs.filter(recipe_id__in=x)
+                print("here2")
+            elif searchType == "wcim":
+                print("here")
+                recipes = dict()
+                
+                for r in qs:
+                    recipes[r.recipe_id] = [r, True]
+                    
+                for u in Usedby.objects.all().select_related("ingredient"):
+                    i = u.ingredient
+                    if not theresEnough(u, i):
+                        recipes[u.recipe_id][1] = False
+                        
+                actualList = list()
+                for r in recipes.values():
+                    if r[1]:
+                        actualList.append(r[0].recipe_id)
+                print(actualList)
+                qs = qs.filter(recipe_id__in=actualList)
+            else:
+                print("here3")
+                x = Usedby.objects.none()
+                qs = qs.filter(Q(title__icontains=search)|Q(description__icontains=search))
         return qs
 
 def analyticsView(request, data={}):

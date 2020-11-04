@@ -3,13 +3,11 @@
 
 <script type="text/javascript">
     
-    function addModalHandler()
+    function addModalHandler(row, recipe_id)
     {
-        $('.recipeRow').off("click").click(function(){
+        row.off("click").click(function(){
             if(!selectionExists() && !($(".modal").data('bs.modal') ||{})._isShown)
             {
-                console.log("ajaxing")
-                var recipe_id = $(this).attr('id')
                 $.ajax({
                     url:'/getRecipeInfo/',
                     type:'get',
@@ -23,20 +21,45 @@
             }
         });
     }
+    function getSearchTerm()
+    {
+        l = window.location.href.slice(window.location.href.indexOf('?') + 1).split('=')[1];
+        if(l == undefined)
+        {
+            l = ""
+        }
+        return l
+    }
+    function getSearchType()
+    {
+        l = window.location.href.slice(window.location.href.indexOf('?') + 1).split('=')[0];
+        if(l == undefined)
+        {
+            l = ""
+        }
+        return l
+    }
     $(document).ready(function(){
-        
-        $('#recipetable')
-        .on('draw.dt', addModalHandler)
-        .on('search.dt', addModalHandler)
-        .on('page.dt', addModalHandler)
-        .on('length.dt', addModalHandler)
-        .DataTable(/*"aoColumns":[{"bSortable": true},{"bSortable": false},{"bSortable": true},{"bSortable": false}]*/);
-        //console.log($("#recipetable").EventHandler.GetInvocationList()d)
+
+       $('#recipetable').DataTable(
+        {
+            "processing":true,
+            "serverSide":true,
+            "ajax":{"url":"/recipeViewData/", "data":{"searchType":getSearchType(),}},//, "dataSrc":""},//, "dataSrc":"Data"}
+            "columns":[{"data":"title"}, {"data":"description"}, {"data":"rating"}, {"data":"url"}, {"data":"recipe_id", "visible":false}],
+            "initComplete": function () {
+                this.api().search(getSearchTerm()).draw().draw()
+            },
+            "createdRow":function(row, data, index){
+            addModalHandler($(row), data["recipe_id"])
+            },
+        });
 
         $('.dataTables_length').addClass('bs-select');
         
         //addModalHandler()
     });
+
     $(document).click(function(e)
     {
         if (!$(e.target).closest('.modal-content').length) {
@@ -64,7 +87,7 @@
     </div>
     <div class="col">
         <form action="/" method="get" class="float-right">
-            <input name="view" value="wcim" hidden="true">
+            <input name="wcim" hidden="true">
             <button class="btn btn-primary btn-lg mx-auto" type="submit" style="margin-top:.5rem;">What Can I make</button>
         </form>
     </div>
@@ -84,17 +107,6 @@
                 <th class="th-sm" scope="col">URL</th>
             </tr>
         </thead>
-        <tbody>
-        {%for x in recipes%}
-            {% comment %} <tr class="recipeRow" data-toggle="modal" data-target="#theModal" id="recipe_{{x.recipe_id}}"> {% endcomment %}
-            <tr class="recipeRow" id="recipe_{{x.recipe_id}}">
-                <td>{{x.title}}</td>
-                <td>{{x.description}}</td>
-                <td>{{x.rating_stars}}</td>
-                <td>{{x.url}}</td>
-            </tr>
-        {% endfor %}
-        </tbody>
     </table>
 </div>
 

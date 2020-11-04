@@ -73,18 +73,12 @@
                 this.api().search(getSearchTerm()).draw();
             },
             "createdRow":function(row, data, index){
-                console.log(data["ingredient_id"])
-                console.log("HERE2")
-                console.log(row)
-                console.log(data)
-                console.log(index)
                 var quantity = data["quantity"]
                 var ingredient_id = data["ingredient_id"]
                 addModalHandler($(row))
                 $(row).addClass("class", "ingredientRow")
                 $(row).attr("id", "row_"+ingredient_id)
                 $('td',row).eq(1).html(makeQuantityForm(ingredient_id,quantity))
-                //addModalHandler(row)
                },
         });
 
