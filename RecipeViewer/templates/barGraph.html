@@ -1,7 +1,7 @@
 {% block content %}
 
-  <div id="container" style="width: 75%;">
-    <canvas id="pie-chart-{{chartID}}"></canvas>
+  <div id="container" style="width: 100%;">
+    <canvas id="bar-graph-{{chartID}}"></canvas>
   </div>
 
   <script>
@@ -13,7 +13,7 @@
           datasets: [{
             data: {{ data|safe }},
             backgroundColor: {{backgroundColor|safe}},
-            label: 'Average Makes Per Person'
+            label: "{{ graphLabel|safe }}"
           }],
           labels: {{ labels|safe }}
         },
@@ -21,7 +21,7 @@
           responsive: true
         }
       };
-      var ctx = document.getElementById('pie-chart-{{chartID}}').getContext('2d');
+      var ctx = document.getElementById('bar-graph-{{chartID}}').getContext('2d');
       window.myGraph = new Chart(ctx, config);
     });
 

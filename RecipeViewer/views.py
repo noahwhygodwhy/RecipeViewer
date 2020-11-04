@@ -9,6 +9,7 @@ from django.http import JsonResponse
 from django.db.models.aggregates import Count
 from django.db.models import Prefetch
 from django.db.models import Q
+from django.db.models import F
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
 import random
@@ -188,159 +189,6 @@ def ingredientDetails(request, data={}):
     data["ingredient"] = Ingredients.objects.get(ingredient_id = ingredient_id)
     return render(request, "ingredientModal.html", data)
 
-def getTopFiveIngByQuant(request, data={}):
-    labels = []
-    chartData = []
-
-    queryset = Ingredients.objects.order_by('-quantity')[:5]
-    for ingredient in queryset:
-        labels.append(ingredient.name)
-        chartData.append(ingredient.quantity)
-    data["labels"] = labels
-    data["data"] = chartData
-    data["chartID"] = uuid.uuid4()
-    return render(request, 'pieChart.html', data)
-
-#################################################################
-#OTHER
-#################################################################
-
-@csrf_exempt
-def makeRecipe(request, data={}):
-    ings = request.POST.getlist("ingredients[][]")
-    try:
-        for x in ings:
-            spl = x.split(",")
-            iid = spl[0]
-            ("iid:" + iid)
-            quant = float(spl[1])
-            ingred = Ingredients.objects.get(ingredient_id = iid)
-            ingred.quantity -= quant
-            ingred.save()
-        try:
-            user=Users.objects.get(username = request.POST["username"])
-        except ObjectDoesNotExist as e:
-            user = Users(username=request.POST["username"], user_id = uuid.uuid4())
-            user.save()
-        
-        date = request.POST["date"].split("-")
-        year = int(date[0])
-        month = int(date[1])
-        day = int(date[2])
-        time = request.POST["time"].split(":")
-        hour = int(time[0])
-        minute = int(time[1])
-        theDateTime = timezone.datetime(year, month,day, hour, minute)
-        theDateTime = timezone.make_aware(theDateTime)
-
-        m = Makes(meal_id = uuid.uuid4(),
-                user=user,
-                recipe=Recipes.objects.get(recipe_id = request.POST["recipe_id"]),
-                datetime = theDateTime)
-        m.save()
-        return HttpResponse(True)
-    except Exception as e:
-        print("exception")
-        print(e)
-        return HttpResponse(False)
-
-def getIngredientExists(request, data={}):
-    result = {}
-    exists = Ingredients.objects.filter(name=request.GET["ingName"]).exists()
-    unit = ""
-    location=""
-    if(exists):
-        unit = Ingredients.objects.get(name=request.GET["ingName"]).unit
-        location = Ingredients.objects.get(name=request.GET["ingName"]).location
-        print("loc:",location)
-    return JsonResponse({"exists":exists, "unit":unit, "location":location})
-
-def getIngredientQuantity(request, data={}):
-    try:
-        iid = request.GET["ingredient_id"]
-        quant = Ingredients.objects.get(ingredient_id = iid).quantity
-    except:
-        quant = -1
-        
-    return HttpResponse(quant)
-
-def updateIngredientQuantity(request, data={}):
-    ig = Ingredients.objects.get(ingredient_id = request.GET["ingredient_id"])
-    ig.quantity=request.GET["newValue"]
-    ig.save()
-    return HttpResponse()
-
-def theresEnough(ub, ing):
-    have = ing.quantity
-    haveUnit = ing.unit
-
-    wanted = ub.quantity
-    wantedUnit = ub.unit
-
-    if wantedUnit == haveUnit:
-        return have >= wanted
-    elif wantedUnit in VOLUME_UNITS and haveUnit in VOLUME_UNITS:
-        have = have*VOLUME_UNITS[haveUnit]/VOLUME_UNITS[wantedUnit];
-    elif wantedUnit in WEIGHT_UNITS and haveUnit in WEIGHT_UNITS:
-        have = have*WEIGHT_UNITS[haveUnit]/WEIGHT_UNITS[wantedUnit];
-    return have>=wanted
-
-def getMakesPerUserGraph(request, data={}):
-    print("getMakesPerUser")
-    labels = list()
-    chartData = list()
-    users = dict()
-    user_ids = Makes.objects.values("user_id").annotate(entries=Count("user_id"))
-
-    counts = dict()
-    for x in user_ids:
-        makes = x["entries"]
-        if makes in counts:
-            counts[makes] += 1
-        else:
-            counts[makes] = 1   
-    dataTobeSorted = list()
-    for x in counts:
-        dataTobeSorted.append((x, counts[x]))
-    dataTobeSorted = sorted(dataTobeSorted)
-    mx = max(dataTobeSorted, key=lambda x:x[1])
-    
-    colors = "["
-    for x in dataTobeSorted:
-        labels.append(x[0])
-        chartData.append(x[1])
-        red = 250-x[0]*2
-        blue = 0+x[0]*4
-        green= 0
-        colors += '"#' + f'{red:02x}' + f'{green:02x}' + f'{blue:02x}' + '",'
-    colors.strip(",")
-    colors += "]"
-
-    data["backgroundColor"] = colors
-    data["labels"] = labels
-    data["data"] = chartData
-    data["chartID"] = uuid.uuid4()
-    return render(request, 'barGraph.html', data)
-
-    #counts is now a dict of Makes:How mnay people have that many makes
-
-
-    #todo:
-
-#top five recipes by review count
-def getTFRBRC(request, data={}):
-    labels = []
-    chartData = []
-
-    queryset = Recipes.objects.order_by('-review_count')[:5]
-    for recipe in queryset:
-        labels.append(recipe.title)
-        chartData.append(recipe.review_count)
-    data["labels"] = labels
-    data["data"] = chartData
-    data["chartID"] = uuid.uuid4()
-    return render(request, 'pieChart.html', data)
-    
 #################################################################
 #DATATABLE VIEWS
 #################################################################
@@ -438,5 +286,200 @@ class recipeViewData(BaseDatatableView):
             qs = qs.filter(recipe_id__in=actualList)
         return qs
 
+#################################################################
+#OTHER
+#################################################################
+
+@csrf_exempt
+def makeRecipe(request, data={}):
+    ings = request.POST.getlist("ingredients[][]")
+    try:
+        for x in ings:
+            spl = x.split(",")
+            iid = spl[0]
+            ("iid:" + iid)
+            quant = float(spl[1])
+            ingred = Ingredients.objects.get(ingredient_id = iid)
+            ingred.quantity -= quant
+            ingred.save()
+        try:
+            user=Users.objects.get(username = request.POST["username"])
+        except ObjectDoesNotExist as e:
+            user = Users(username=request.POST["username"], user_id = uuid.uuid4())
+            user.save()
+        
+        date = request.POST["date"].split("-")
+        year = int(date[0])
+        month = int(date[1])
+        day = int(date[2])
+        time = request.POST["time"].split(":")
+        hour = int(time[0])
+        minute = int(time[1])
+        theDateTime = timezone.datetime(year, month,day, hour, minute)
+        theDateTime = timezone.make_aware(theDateTime)
+
+        m = Makes(meal_id = uuid.uuid4(),
+                user=user,
+                recipe=Recipes.objects.get(recipe_id = request.POST["recipe_id"]),
+                datetime = theDateTime)
+        m.save()
+        return HttpResponse(True)
+    except Exception as e:
+        print("exception")
+        print(e)
+        return HttpResponse(False)
+
+def getIngredientExists(request, data={}):
+    result = {}
+    exists = Ingredients.objects.filter(name=request.GET["ingName"]).exists()
+    unit = ""
+    location=""
+    if(exists):
+        unit = Ingredients.objects.get(name=request.GET["ingName"]).unit
+        location = Ingredients.objects.get(name=request.GET["ingName"]).location
+        print("loc:",location)
+    return JsonResponse({"exists":exists, "unit":unit, "location":location})
+
+def getIngredientQuantity(request, data={}):
+    try:
+        iid = request.GET["ingredient_id"]
+        quant = Ingredients.objects.get(ingredient_id = iid).quantity
+    except:
+        quant = -1
+        
+    return HttpResponse(quant)
+
+def updateIngredientQuantity(request, data={}):
+    ig = Ingredients.objects.get(ingredient_id = request.GET["ingredient_id"])
+    ig.quantity=request.GET["newValue"]
+    ig.save()
+    return HttpResponse()
+
+def theresEnough(ub, ing):
+    have = ing.quantity
+    haveUnit = ing.unit
+
+    wanted = ub.quantity
+    wantedUnit = ub.unit
+
+    if wantedUnit == haveUnit:
+        return have >= wanted
+    elif wantedUnit in VOLUME_UNITS and haveUnit in VOLUME_UNITS:
+        have = have*VOLUME_UNITS[haveUnit]/VOLUME_UNITS[wantedUnit];
+    elif wantedUnit in WEIGHT_UNITS and haveUnit in WEIGHT_UNITS:
+        have = have*WEIGHT_UNITS[haveUnit]/WEIGHT_UNITS[wantedUnit];
+    return have>=wanted
+
+#################################################################
+#GRAPHS
+#################################################################
+
+def getMakesPerUserGraph(request, data={}):
+    print("getMakesPerUser")
+    labels = list()
+    chartData = list()
+    users = dict()
+    user_ids = Makes.objects.values("user_id").annotate(entries=Count("user_id"))
+
+    counts = dict()
+    for x in user_ids:
+        makes = x["entries"]
+        if makes in counts:
+            counts[makes] += 1
+        else:
+            counts[makes] = 1   
+    dataTobeSorted = list()
+    for x in counts:
+        dataTobeSorted.append((x, counts[x]))
+    dataTobeSorted = sorted(dataTobeSorted)
+    mx = max(dataTobeSorted, key=lambda x:x[1])
+    
+    colors = "["
+    for x in dataTobeSorted:
+        labels.append(x[0])
+        chartData.append(x[1])
+        red = min(255, 250-x[0]*2)
+        blue = min(255, 0+x[0]*4)
+        green= 0
+        colors += '"#' + f'{red:02x}' + f'{green:02x}' + f'{blue:02x}' + '",'
+    colors.strip(",")
+    colors += "]"
+
+    data["backgroundColor"] = colors
+    data["labels"] = labels
+    data["data"] = chartData
+    data["chartID"] = uuid.uuid4()
+    data["graphLabel"] = "Makes Per User"
+    return render(request, 'barGraph.html', data)
+
+    #counts is now a dict of Makes:How mnay people have that many makes
 
 
+    #todo:
+
+#top five recipes by review count
+def getTFRBRC(request, data={}):
+    labels = []
+    chartData = []
+
+    queryset = Recipes.objects.order_by('-review_count')[:5]
+    for recipe in queryset:
+        labels.append(recipe.title)
+        chartData.append(recipe.review_count)
+    data["labels"] = labels
+    data["data"] = chartData
+    data["chartID"] = uuid.uuid4()
+    data["graphLabel"] = "Top Five Recipes by Review Count"
+    return render(request, 'pieChart.html', data)
+    
+def getTopUsedIngredients(request, data={}):
+    print("getTopUsedIngredients")
+    labels = list()
+    chartData = list()
+    
+    ingredient_ids = list(Usedby.objects.values("ingredient_id").annotate(entries=Count("ingredient_id"), name=F("ingredient__name")))
+    print("getTopUsedIngredients2")
+    # dataToBeSorted = list()
+    # for x in ingredient_ids:
+    #     dataToBeSorted.append((x["entries"], x["name"])
+    print("getTopUsedIngredients3")
+
+    # print(dataToBeSorted)
+
+    ingredient_ids.sort(key=lambda x:x["entries"], reverse=True)
+
+    ingredient_ids = ingredient_ids[0:100]
+
+    colors = "["
+    for x in ingredient_ids:
+        labels.append(x["name"])
+        chartData.append(x["entries"])
+        # red = 250-x["entries"]*2
+        # blue = 0+x["entries"]*4
+        red=255
+        blue = 125
+        green= 0
+        
+        colors += '"#' + f'{red:02x}' + f'{green:02x}' + f'{blue:02x}' + '",'
+    colors.strip(",")
+    colors += "]"
+    data["graphLabel"] = "Used In Recipes"
+    data["backgroundColor"] = colors
+    data["labels"] = labels
+    data["data"] = chartData
+    data["chartID"] = uuid.uuid4()
+    return render(request, "barGraphScrolling.html", data)
+
+def getTopFiveIngByQuant(request, data={}):
+    labels = []
+    chartData = []
+
+    queryset = Ingredients.objects.order_by('-quantity')[:5]
+    for ingredient in queryset:
+        labels.append(ingredient.name)
+        chartData.append(ingredient.quantity)
+    data["labels"] = labels
+    data["data"] = chartData
+    data["chartID"] = uuid.uuid4()
+    data["graphLabel"] = "Top Five Ingredient Stocks"
+    return render(request, 'pieChart.html', data)

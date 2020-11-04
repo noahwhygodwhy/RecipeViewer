@@ -1,0 +1,98 @@
+{% block content %}
+<div style="overflow-x:scroll">
+  <div class="chartContainer" style="position:relative; width:2500px;">
+      <canvas id="bar-graph-{{chartID}}" height="400px"></canvas>
+  </div>
+</div>
+
+
+
+  <script>
+  var config = {
+      type: 'bar',
+      data: {
+        datasets: [{
+          data: {{ data|safe }},
+          backgroundColor: {{backgroundColor|safe}},
+          label: "{{graphLabel}}"
+        }],
+        labels: {{ labels|safe }}
+      },
+      options:
+      {
+        responsive: true,
+        maintainAspectRatio: false,
+      },
+        legend: {
+          display: false
+        },
+        scales: {
+          xAxes: [{
+            ticks: {
+              fontSize: 12,
+              display: false
+            }
+          }],
+          yAxes: [{
+            ticks: {
+              fontSize: 12,
+              beginAtZero: true
+            }
+          }]
+        },
+      animation: {
+          onComplete: function() {
+            if (!rectangleSet) {
+              var scale = window.devicePixelRatio;
+
+              var sourceCanvas = chartTest.chart.canvas;
+              var copyWidth = chartTest.scales['y-axis-0'].width - 10;
+              var copyHeight = chartTest.scales['y-axis-0'].height + chartTest.scales['y-axis-0'].top + 10;
+
+              var targetCtx = document.getElementById("myChartAxis").getContext("2d");
+
+              targetCtx.scale(scale, scale);
+              targetCtx.canvas.width = copyWidth * scale;
+              targetCtx.canvas.height = copyHeight * scale;
+
+              targetCtx.canvas.style.width = `${copyWidth}px`;
+              targetCtx.canvas.style.height = `${copyHeight}px`;
+              targetCtx.drawImage(sourceCanvas, 0, 0, copyWidth * scale, copyHeight * scale, 0, 0, copyWidth * scale, copyHeight * scale);
+
+              var sourceCtx = sourceCanvas.getContext('2d');
+
+              // Normalize coordinate system to use css pixels.
+
+              sourceCtx.clearRect(0, 0, copyWidth * scale, copyHeight * scale);
+              rectangleSet = true;
+            }
+          },
+          onProgress: function() {
+            if (rectangleSet === true) {
+              var copyWidth = chartTest.scales['y-axis-0'].width;
+              var copyHeight = chartTest.scales['y-axis-0'].height + chartTest.scales['y-axis-0'].top + 10;
+
+              var sourceCtx = chartTest.chart.canvas.getContext('2d');
+              sourceCtx.clearRect(0, 0, copyWidth, copyHeight);
+            }
+          }
+        }
+    };
+
+  function onAC()
+  {
+    var sourceCanvas = this.chart.ctx.canvas;
+    var copyWidth = this.scale.xScalePaddingLeft - 5;
+    var copyHeight = this.scale.endPoint + 5;
+    var targetCtx = document.getElementById("myChartAxis").getContext("2d");
+    targetCtx.canvas.width = copyWidth;
+    targetCtx.drawImage(sourceCanvas, 0, 0, copyWidth, copyHeight, 0, 0, copyWidth, copyHeight);
+  }
+  $(document).ready(function(){
+    var ctx = document.getElementById('bar-graph-{{chartID}}').getContext('2d');
+    window.myGraph = new Chart(ctx, config)
+  });
+
+  </script>
+
+{% endblock %}

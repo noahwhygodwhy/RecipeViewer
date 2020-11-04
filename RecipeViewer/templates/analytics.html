@@ -29,6 +29,14 @@
                 $("#chart3").html(response);
             }
         });
+        $.ajax({
+            url:'/getTopUsedIngredients/',
+            type:'get',
+            data:{},
+            success: function(response){
+                $("#chart4").html(response);
+            }
+        });
     });
   </script>
 
@@ -40,5 +48,10 @@
   </div>
   <div class="row">
     <div class="col" id="chart3">
+    </div>
+  </div>
+  <div class="row" height="100px">
+    <div class="col chartWarpper" id="chart4" height="100px">
+
     </div>
   </div>
