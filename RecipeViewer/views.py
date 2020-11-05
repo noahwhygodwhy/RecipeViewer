@@ -1,3 +1,4 @@
+from django.db.models.fields import BooleanField
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -7,10 +8,12 @@ import uuid
 from django.utils import timezone
 from django.http import JsonResponse
 from django.db.models.aggregates import Count
+from django.db.models import Sum
 from django.db.models import Prefetch
 from django.db.models import Q
 from django.db.models import F
 from django_datatables_view.base_datatable_view import BaseDatatableView
+from django.db.models import Count, Case, When, IntegerField
 
 import random
 import datetime
@@ -83,22 +86,25 @@ def makeView(request, data={}):
     if request.GET.__contains__("user"):
         user_id = request.GET["user"]
         username = Users.objects.get(user_id=user_id).username
-        data["title"] = "All Makes by " + username
+        data["title"] = "All Makes by " + username.title()
     elif request.GET.__contains__("recipe"):
         recipe_id = request.GET["recipe"]
         title = Recipes.objects.get(recipe_id=recipe_id).title
-        data["title"] = "All Makes of " + title
+        data["title"] = "All Makes of " + title.title()
     
     data["nested"] = "makes.html"
     return render(request, "base.html", data)
 
 def recipeView(request, data={}):
+    if request.GET.__contains__("recipe_id"):
+        recipe_id = request.GET["recipe_id"]
+        data["title"] = "Similar to " + Recipes.objects.get(recipe_id=recipe_id).title.title()
     if request.GET.__contains__("ingredient_id"):
         iid = request.GET["ingredient_id"]
         data["title"] = "All Recipes That Use " + Ingredients.objects.get(ingredient_id = iid).name.title()
     elif request.GET.__contains__("author"):
         user_id = request.GET["author"]
-        data["title"] = "Recipes by " + Users.objects.get(user_id=user_id).username
+        data["title"] = "Recipes by " + Users.objects.get(user_id=user_id).username.title()
     elif request.GET.__contains__("view"):
         if request.GET["view"] == "wcim":
             data["title"] = "What can I make?"
@@ -192,6 +198,7 @@ def ingredientDetails(request, data={}):
 #################################################################
 #DATATABLE VIEWS
 #################################################################
+
 class makesViewData(BaseDatatableView):
     columns = ["user", "recipe", "datetime", "user_id, ""recipe_id"]
     order_columns = ["user", "recipe", "datetime"]
@@ -261,12 +268,15 @@ class recipeViewData(BaseDatatableView):
         searchType = self.request.GET.get('searchType', None)
         searchTerm = self.request.GET.get('searchTerm', None)
         if searchType == "recipe_id" and searchTerm:
-            print("recipe_id")
-            ingredient_ids = Usedby.objects.filter(recipe_id=searchTerm)
-            print("2")
-            recipe_ids = Recipes.objects.aggregate("recipe_id").annotate(entries=Count(ingredient_id__in=ingredient_ids))
-            print("3")
-            print(recipe_ids)
+            ingredient_ids = Usedby.objects.filter(recipe_id=searchTerm).values("ingredient_id")
+
+            recipe_counts = Usedby.objects.values("recipe_id").annotate(theCount = Count(Case(When(ingredient_id__in=ingredient_ids, then=1), output_field=IntegerField())))
+            
+            
+            recipe_counts = recipe_counts.order_by("-theCount").values("recipe_id", "theCount")[0:20]#.filter(theCount__gt=5)
+            
+            qs = qs.filter(recipe_id__in=recipe_counts.values("recipe_id"))#.order_by("-theCount")
+
         if searchType == "ingredient_id" and searchTerm:
             x = Usedby.objects.filter(ingredient_id=searchTerm).values("recipe_id")
             qs = qs.filter(recipe_id__in=x)
@@ -421,8 +431,8 @@ def getMakesPerUserGraph(request, data={}):
 
     #todo:
 
-#top five recipes by review count
 def getTFRBRC(request, data={}):
+    #top five recipes by review count
     labels = []
     chartData = []
 
