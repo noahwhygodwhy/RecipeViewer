@@ -310,14 +310,21 @@
                 </ul>
                 </div>
                 <div class="col">
-                <h5>Instructions:</h5>
-                <ol>
-                {% for x in instructions%}
-                <li>
-                <p>{{x}}</p>
-                </li>
-                {% endfor %}
-                </ol>
+                    <div class="row">
+                        <h5>Instructions:</h5>
+                        <ol>
+                        {% for x in instructions%}
+                        <li>
+                        <p>{{x}}</p>
+                        </li>
+                        {% endfor %}
+                        </ol>
+                    </div>
+                    <div class="row">
+                        <form action="/" method="GET">
+                            <button type="submit" class="btn btn-primary" name="recipe_id" value="{{recipe.recipe_id}}">Find Related Recipes</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

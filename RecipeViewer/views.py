@@ -249,8 +249,8 @@ class ingredientViewData(BaseDatatableView):
         return qs
 
 class recipeViewData(BaseDatatableView):
-    columns = ["title", "description", "rating", "url", "recipe_id"]
-    order_columns = ["title", "description", "rating", "url", "recipe_id"]
+    columns = ["title", "description", "rating_stars", "url", "recipe_id"]
+    order_columns = ["title", "description", "rating_stars", "url", "recipe_id"]
     model = Recipes
 
     def render_column(self, row, column):
@@ -260,7 +260,13 @@ class recipeViewData(BaseDatatableView):
         search = self.request.GET.get('search[value]', None)
         searchType = self.request.GET.get('searchType', None)
         searchTerm = self.request.GET.get('searchTerm', None)
-
+        if searchType == "recipe_id" and searchTerm:
+            print("recipe_id")
+            ingredient_ids = Usedby.objects.filter(recipe_id=searchTerm)
+            print("2")
+            recipe_ids = Recipes.objects.aggregate("recipe_id").annotate(entries=Count(ingredient_id__in=ingredient_ids))
+            print("3")
+            print(recipe_ids)
         if searchType == "ingredient_id" and searchTerm:
             x = Usedby.objects.filter(ingredient_id=searchTerm).values("recipe_id")
             qs = qs.filter(recipe_id__in=x)
@@ -270,20 +276,18 @@ class recipeViewData(BaseDatatableView):
             qs = qs.filter(Q(title__icontains=search)|Q(description__icontains=search))
         elif searchType == "wcim":
             recipes = dict()
-            
             for r in qs:
-                recipes[r.recipe_id] = [r, True]
-                
+                recipes[r.recipe_id] = [r, True] 
             for u in Usedby.objects.all().select_related("ingredient"):
                 i = u.ingredient
                 if not theresEnough(u, i):
-                    recipes[u.recipe_id][1] = False
-                    
+                    recipes[u.recipe_id][1] = False     
             actualList = list()
             for r in recipes.values():
                 if r[1]:
                     actualList.append(r[0].recipe_id)
             qs = qs.filter(recipe_id__in=actualList)
+
         return qs
 
 #################################################################
@@ -456,8 +460,6 @@ def getTopUsedIngredients(request, data={}):
         
         labels.append(x["name"])
         chartData.append(x["entries"])
-        # red = 250-x["entries"]*2
-        # blue = 0+x["entries"]*4
         red=0
         blue = min(255, 120+i)
         green= min(255, 200-i)
