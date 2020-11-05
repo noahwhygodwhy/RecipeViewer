@@ -369,6 +369,43 @@ def updateIngredientQuantity(request, data={}):
     ig.save()
     return HttpResponse()
 
+def convertUnits(origQuant, origUnit, newUnit):
+    if origUnit == newUnit:
+        newQuant = origQuant
+    elif origUnit in VOLUME_UNITS and newUnit in VOLUME_UNITS:
+        newQuant = origQuant*VOLUME_UNITS[origUnit]/VOLUME_UNITS[newUnit];
+    elif origUnit in WEIGHT_UNITS and newUnit in WEIGHT_UNITS:
+        newQuant = origQuant*WEIGHT_UNITS[origUnit]/WEIGHT_UNITS[newUnit];
+    else:
+        newQuant = None #shouldn't happen, but hey
+    return newQuant
+    
+    
+
+@csrf_exempt
+def buyStock(request, data={}):
+    recipe_id = request.POST["recipe_id"]
+    multiplier = float(request.POST["multiplier"])
+    uses = Usedby.objects.filter(recipe_id=recipe_id)
+
+    for use in uses:
+        useUnit = use.unit
+        useQuantity = use.quantity
+        ing = Ingredients.objects.get(ingredient_id=use.ingredient_id)
+        ingUnit = ing.unit
+        newQuant = convertUnits(useQuantity, useUnit, ingUnit)
+        if newQuant is not None:
+            newQuant = newQuant * multiplier
+            ing.quantity += newQuant
+            ing.save()
+    return HttpResponse()
+    #get the quantity and unit of the use
+    #convert it to the unit of the ingredient
+    #multiply it by the multiplier
+    #add that quantity to the ingredient
+
+
+
 def theresEnough(ub, ing):
     have = ing.quantity
     haveUnit = ing.unit

@@ -90,7 +90,7 @@
             newVal = String((Math.round(Number($(this).children(".oquant").text())*$("#recipeMultField").val()*100))/100)
             $(this).children(".iquant").text(newVal)
             });
-        //could be optimized to do them all at once, to reduce number of gets against the server
+        //TODO: could be optimized to do them all at once, to reduce number of gets against the server
         $(".ingredientParagraph").each(function(){
             ingredient_id = $(this).attr("id").split(" ")[1]
             $.ajax({
@@ -229,11 +229,25 @@
             data:theData,
             success: function(response){
                 adjustIngredientQuantities();
-                //TODO: recipe made message
+                $("#madeMessage").attr("style", "color:green;")
+                $("#madeMessage").text("Recipe has been made");
             },
             error: function(){
                 console.log("ERROR ERROR ERROR 2")
             }
+        }));
+    }
+    function buyStock()
+    {
+        recipe_id = "{{recipe.recipe_id}}";
+        multiplier = $('#recipeMultField').val();
+        $.when($.ajax({
+            url:"/buyStock/",
+            type:"post",
+            data:{"recipe_id":recipe_id, "multiplier":multiplier},
+            success:function(response){
+                adjustIngredientQuantities();
+            },
         }));
     }
 
@@ -266,48 +280,57 @@
 
             <div class="row">
                 <div class="col">
-                
-                <div class="center" style="width: 300px;">
-                    <div class="input-group">
-                        <h6>Multiplier:&nbsp;&nbsp;</h6>
-                        <span class="input-group-btn">
-                            <button type="button" class="btn btn-danger btn-number" id="recipeMinusButton" onclick="subOne()">
-                                <span class="glyphicon glyphicon-minus">-</span>
-                            </button>
-                        </span>
-                        <input id="recipeMultField" type="text" name="multiplier" class="form-control input-number" value="1" min="0.1" max="100" onfocus="fieldFocus()" onchange="fieldChange()">
-                        <span class="input-group-btn">
-                            <button type="button" class="btn btn-success btn-number" id="recipePlusButton" onclick="addOne()">
-                                <span class="glyphicon glyphicon-plus">+</span>
-                            </button>
-                        </span>
-                        <span class="input-group-btn">
-                            <button type="button" class="btn btn-secondary" id="recipeResetButton" onclick="resetMultiplier()">
-                                <span class="glyphicon glyphicon-plus">reset</span>
-                            </button>
-                        </span>
+                    <div class="center" style="width: 300px;">
+                        <div class="input-group">
+                            <h6>Multiplier:&nbsp;&nbsp;</h6>
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-danger btn-number" id="recipeMinusButton" onclick="subOne()">
+                                    <span class="glyphicon glyphicon-minus">-</span>
+                                </button>
+                            </span>
+                            <input id="recipeMultField" type="text" name="multiplier" class="form-control input-number" value="1" min="0.1" max="100" onfocus="fieldFocus()" onchange="fieldChange()">
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-success btn-number" id="recipePlusButton" onclick="addOne()">
+                                    <span class="glyphicon glyphicon-plus">+</span>
+                                </button>
+                            </span>
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-secondary" id="recipeResetButton" onclick="resetMultiplier()">
+                                    <span class="glyphicon glyphicon-plus">reset</span>
+                                </button>
+                            </span>
+                        </div>
                     </div>
-                </div>
-
-
-                <h5>Ingredients:</h5>
-                <ul class="incredientList">
-                {% for x in ingredients%}
-                <li>
-                <p>
-                <div class="ingredientParagraph" id="{{recipe.recipe_id}} {{x.0.ingredient_id}} ingredient-{{forloop.counter}}">
-                    <span class="stockSymbol">✔️</span>
-                    <span class="iquant">{{x.0.quantity}}</span> 
-                    <span class="iunit">{{x.0.unit}}</span> 
-                    {{x.0.ingredient.name}}
-                    <span class="oquant" hidden="true">{{x.0.quantity}}</span>
-                    <span class="pquant" hidden="true">{{x.1.quantity}}</span>
-                    <span class="punit" hidden="true">{{x.1.unit}}</span>
-                </div>
-                </p>
-                </li>
-                {% endfor %}
-                </ul>
+                    </br>
+                    <div class="row">
+                        <div class="col">
+                            <h5>Ingredients:</h5>
+                        </div>
+                        <div class="col">
+                            <form action="javascript:void(0);" method="POST" onsubmit="buyStock()">
+                                <button type="submit" value="{{recipe.recipe_id}}" name="recipe_id" class="btn btn-secondary">Stock Up</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="row">
+                    <ul class="incredientList">
+                    {% for x in ingredients%}
+                    <li>
+                    <p>
+                    <div class="ingredientParagraph" id="{{recipe.recipe_id}} {{x.0.ingredient_id}} ingredient-{{forloop.counter}}">
+                        <span class="stockSymbol">✔️</span>
+                        <span class="iquant">{{x.0.quantity}}</span> 
+                        <span class="iunit">{{x.0.unit}}</span> 
+                        {{x.0.ingredient.name}}
+                        <span class="oquant" hidden="true">{{x.0.quantity}}</span>
+                        <span class="pquant" hidden="true">{{x.1.quantity}}</span>
+                        <span class="punit" hidden="true">{{x.1.unit}}</span>
+                    </div>
+                    </p>
+                    </li>
+                    {% endfor %}
+                    </ul>
+                    </div>
                 </div>
                 <div class="col">
                     <div class="row">

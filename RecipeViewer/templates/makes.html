@@ -25,6 +25,7 @@
             "processing":true,
             "serverSide":true,
             "ajax":{"url":"/makesViewData/", "data":{"searchType":getSearchType(), "searchTerm":getSearchTerm()}},//, "dataSrc":""},//, "dataSrc":"Data"}
+            "order": [[ 2, "desc" ]],
             "columns":[{"data":"user"}, {"data":"recipe"}, {"data":"datetime"}, {"data":"user_id", visible:false}, {"data":"recipe_id", visible:false}],
             "createdRow":function(row, data, index){
                 $("td", row).eq(0).html("<a href='/makes/?user=" + data["user_id"] + "'>" + data["user"] + "</a>")
