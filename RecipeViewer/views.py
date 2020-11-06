@@ -230,6 +230,8 @@ class makesViewData(BaseDatatableView):
             qs = qs.filter(recipe_id=searchTerm)
         if search:
             qs = qs.filter(Q(user__username__icontains=search) | Q(recipe__title__icontains=search) | Q(datetime__icontains=search))
+        
+        printQuery(qs)
         return qs
 
 class ingredientViewData(BaseDatatableView):
@@ -242,17 +244,18 @@ class ingredientViewData(BaseDatatableView):
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
-        if search:
-            try:
-                theUUID = uuid.UUID(search)
-                x = Usedby.objects.filter(ingredient_id=search).values("recipe_id") #this probably won't work
-                qs = qs.filter(recipe_id__in=x)
-                print("no exception")
-            except ValueError as e:
-                print("exeption", e)
-                x = Usedby.objects.none()
-                qs = qs.filter(Q(name__icontains=search))
+        searchType = self.request.GET.get('searchType', None)
+        searchTerm = self.request.GET.get('searchTerm', None)
 
+        if search:
+            qs = qs.filter(Q(name__icontains=search))
+            
+        # if searchType == "ingredient_id" and searchTerm: #i don't think this is ever used..?
+        #     x = Usedby.objects.filter(ingredient_id=searchTerm).values("recipe_id")
+        #     print("\nQUERY: ###\n" + str(x.query) + "\n###\n")
+        #     qs = qs.filter(recipe_id__in=x)
+
+        printQuery(qs)
         return qs
 
 class recipeViewData(BaseDatatableView):
@@ -270,15 +273,18 @@ class recipeViewData(BaseDatatableView):
         if searchType == "recipe_id" and searchTerm:
             ingredient_ids = Usedby.objects.filter(recipe_id=searchTerm).values("ingredient_id")
 
+            print("\nQUERY: ###\n" + str(ingredient_ids.query) + "\n###\n")
+
             recipe_counts = Usedby.objects.values("recipe_id").annotate(theCount = Count(Case(When(ingredient_id__in=ingredient_ids, then=1), output_field=IntegerField())))
-            
-            
             recipe_counts = recipe_counts.order_by("-theCount").values("recipe_id", "theCount")[0:20]#.filter(theCount__gt=5)
             
-            qs = qs.filter(recipe_id__in=recipe_counts.values("recipe_id"))#.order_by("-theCount")
+            print("\nQUERY: ###\n" + str(recipe_counts.query) + "\n###\n")
+            
+            qs = qs.filter(recipe_id__in=recipe_counts.values("recipe_id"))#.order_by("-theCount") #TODO:???????????????????????????????????
 
         if searchType == "ingredient_id" and searchTerm:
             x = Usedby.objects.filter(ingredient_id=searchTerm).values("recipe_id")
+            printQuery(x)
             qs = qs.filter(recipe_id__in=x)
         elif searchType == "author" and searchTerm:
             qs = qs.filter(user_id=searchTerm)
@@ -288,7 +294,9 @@ class recipeViewData(BaseDatatableView):
             recipes = dict()
             for r in qs:
                 recipes[r.recipe_id] = [r, True] 
-            for u in Usedby.objects.all().select_related("ingredient"):
+            x = Usedby.objects.all().select_related("ingredient")
+            printQuery(x)
+            for u in x:
                 i = u.ingredient
                 if not theresEnough(u, i):
                     recipes[u.recipe_id][1] = False     
@@ -297,12 +305,15 @@ class recipeViewData(BaseDatatableView):
                 if r[1]:
                     actualList.append(r[0].recipe_id)
             qs = qs.filter(recipe_id__in=actualList)
-
+        printQuery(qs)
         return qs
 
 #################################################################
 #OTHER
 #################################################################
+
+def printQuery(qs):
+        print("\nQUERY: ###\n" + str(qs.query.__str__()) + "\n###\n")
 
 @csrf_exempt
 def makeRecipe(request, data={}):
