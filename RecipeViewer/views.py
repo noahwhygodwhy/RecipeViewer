@@ -250,10 +250,6 @@ class ingredientViewData(BaseDatatableView):
         if search:
             qs = qs.filter(Q(name__icontains=search))
             
-        # if searchType == "ingredient_id" and searchTerm: #i don't think this is ever used..?
-        #     x = Usedby.objects.filter(ingredient_id=searchTerm).values("recipe_id")
-        #     print("\nQUERY: ###\n" + str(x.query) + "\n###\n")
-        #     qs = qs.filter(recipe_id__in=x)
 
         printQuery(qs)
         return qs
@@ -271,14 +267,10 @@ class recipeViewData(BaseDatatableView):
         searchType = self.request.GET.get('searchType', None)
         searchTerm = self.request.GET.get('searchTerm', None)
         if searchType == "recipe_id" and searchTerm:
-            ingredient_ids = Usedby.objects.filter(recipe_id=searchTerm).values("ingredient_id")
-
-            print("\nQUERY: ###\n" + str(ingredient_ids.query) + "\n###\n")
-
-            recipe_counts = Usedby.objects.values("recipe_id").annotate(theCount = Count(Case(When(ingredient_id__in=ingredient_ids, then=1), output_field=IntegerField())))
+            recipe_counts = Usedby.objects.values("recipe_id").annotate(theCount = Count(Case(When(ingredient_id__in=Usedby.objects.filter(recipe_id=searchTerm).values("ingredient_id"), then=1), output_field=IntegerField())))
             recipe_counts = recipe_counts.order_by("-theCount").values("recipe_id", "theCount")[0:20]#.filter(theCount__gt=5)
             
-            print("\nQUERY: ###\n" + str(recipe_counts.query) + "\n###\n")
+            printQuery(recipe_counts)
             
             qs = qs.filter(recipe_id__in=recipe_counts.values("recipe_id"))#.order_by("-theCount") #TODO:???????????????????????????????????
 
@@ -391,8 +383,6 @@ def convertUnits(origQuant, origUnit, newUnit):
         newQuant = None #shouldn't happen, but hey
     return newQuant
     
-    
-
 @csrf_exempt
 def buyStock(request, data={}):
     recipe_id = request.POST["recipe_id"]
@@ -414,8 +404,6 @@ def buyStock(request, data={}):
     #convert it to the unit of the ingredient
     #multiply it by the multiplier
     #add that quantity to the ingredient
-
-
 
 def theresEnough(ub, ing):
     have = ing.quantity
@@ -442,7 +430,6 @@ def getMakesPerUserGraph(request, data={}):
     chartData = list()
     users = dict()
     user_ids = Makes.objects.values("user_id").annotate(entries=Count("user_id"))
-
     counts = dict()
     for x in user_ids:
         makes = x["entries"]
@@ -498,15 +485,9 @@ def getTopUsedIngredients(request, data={}):
     print("getTopUsedIngredients")
     labels = list()
     chartData = list()
-    
-    ingredient_ids = list(Usedby.objects.values("ingredient_id").annotate(entries=Count("ingredient_id"), name=F("ingredient__name")))
-    print("getTopUsedIngredients2")
-    # dataToBeSorted = list()
-    # for x in ingredient_ids:
-    #     dataToBeSorted.append((x["entries"], x["name"])
-    print("getTopUsedIngredients3")
-
-    # print(dataToBeSorted)
+    x = Usedby.objects.values("ingredient_id").annotate(entries=Count("ingredient_id"), name=F("ingredient__name"))
+    printQuery(x)
+    ingredient_ids = list(x)
 
     ingredient_ids.sort(key=lambda x:x["entries"], reverse=True)
 
@@ -546,3 +527,7 @@ def getTopFiveIngByQuant(request, data={}):
     data["chartID"] = uuid.uuid4()
     data["graphLabel"] = "Top Five Ingredient Stocks"
     return render(request, 'pieChart.html', data)
+
+def getAverageTotalPrepTime(request, data={}):
+    labels = list()
+    chartData = list()

@@ -1,4 +1,6 @@
-    <html>
+
+
+<html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <!-- CSS only -->
@@ -13,10 +15,20 @@
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
         <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-
+        <script>
+            var ad = `<div class="col-2" id="banner">
+                        <img src="https://i.pinimg.com/originals/fd/51/ac/fd51ac8eae1b8fa89e765c7c2279f72a.jpg" style="object-fit:fill;" width="100%" height="100%"/>
+                      </div>`
+        $(document).ready(function(){
+            $("#baseRow").prepend(ad)
+            $("#baseRow").append(ad)
+        });
+        </script>
     </head>
     <body>
 
+
+    
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand" href="#">Navbar</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,10 +55,12 @@
         </ul>
         </div>
     </nav>
-
-
-    <div class="container">
-        {%extends nested%}
+    <div class="container-fluid">
+        <div class="row" id="baseRow">
+            <div class="col-8">
+                {%extends nested%}
+            </div>
+        </div>
     </div>
     </body>
     </html>
