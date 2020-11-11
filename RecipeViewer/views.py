@@ -195,6 +195,20 @@ def ingredientDetails(request, data={}):
     data["ingredient"] = Ingredients.objects.get(ingredient_id = ingredient_id)
     return render(request, "ingredientModal.html", data)
 
+def getIngredientTable(request, data={}):
+    username = request.GET["username"]
+    user_id = Users.objects.get(username=username).user_id
+
+    #find favorite ingredients
+    
+    #get a table
+
+    #filter it based on favorite ingredients
+
+    #return it
+
+    return HttpResponse()
+
 #################################################################
 #DATATABLE VIEWS
 #################################################################
@@ -267,13 +281,12 @@ class recipeViewData(BaseDatatableView):
         searchType = self.request.GET.get('searchType', None)
         searchTerm = self.request.GET.get('searchTerm', None)
         if searchType == "recipe_id" and searchTerm:
-            recipe_counts = Usedby.objects.values("recipe_id").annotate(theCount = Count(Case(When(ingredient_id__in=Usedby.objects.filter(recipe_id=searchTerm).values("ingredient_id"), then=1), output_field=IntegerField())))
-            recipe_counts = recipe_counts.order_by("-theCount").values("recipe_id", "theCount")[0:20]#.filter(theCount__gt=5)
-            
-            printQuery(recipe_counts)
-            
+            ingredient_ids = Usedby.objects.filter(recipe_id=searchTerm).values("ingredient_id")
+            recipe_counts = Usedby.objects.values("recipe_id").annotate(theCount = Count(Case(When(ingredient_id__in=ingredient_ids, then=1), output_field=IntegerField())))
+            recipe_counts = recipe_counts.order_by("-theCount").values("recipe_id", "theCount")[0:20]
             qs = qs.filter(recipe_id__in=recipe_counts.values("recipe_id"))#.order_by("-theCount") #TODO:???????????????????????????????????
 
+            printQuery(recipe_counts)
         if searchType == "ingredient_id" and searchTerm:
             x = Usedby.objects.filter(ingredient_id=searchTerm).values("recipe_id")
             printQuery(x)
@@ -480,7 +493,7 @@ def getTFRBRC(request, data={}):
     data["chartID"] = uuid.uuid4()
     data["graphLabel"] = "Top Five Recipes by Review Count"
     return render(request, 'pieChart.html', data)
-    
+
 def getTopUsedIngredients(request, data={}):
     print("getTopUsedIngredients")
     labels = list()
@@ -528,6 +541,6 @@ def getTopFiveIngByQuant(request, data={}):
     data["graphLabel"] = "Top Five Ingredient Stocks"
     return render(request, 'pieChart.html', data)
 
-def getAverageTotalPrepTime(request, data={}):
-    labels = list()
-    chartData = list()
+#def getAverageTotalPrepTime(request, data={}):
+#    labels = list()
+#    chartData = list()

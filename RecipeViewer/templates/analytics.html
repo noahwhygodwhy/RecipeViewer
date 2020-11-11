@@ -38,20 +38,39 @@
             }
         });
     });
+    function getIngredientTable()
+    {
+      $.ajax({
+          url:'/getIngredientTable/',
+          type:'get',
+          data:{"username":$("#usernameField").val()},
+          success: function(response){
+              $("favIngredientsTableContainer").html(response);
+          }
+      });
+    }
+
   </script>
 
   <div class="row">
-    <div class="col" id="chart1">
-    </div>
-    <div class="col" id="chart2">
+    <div class="col">
+      <h1>Users Favorite Ingredient</h1>
+      <form method="POST" action="javascript:void(0);" onsubmit="getIngredientTable()">
+        <input type="text" name="username" placeholder="Username" id="usernameField"></input>
+        <button class="btn btn-primary" type="submit">Submit</button>
+      </form>
+      <div id="favIngredientsTableContainer">
+        
+      </div>
     </div>
   </div>
   <div class="row">
+    <h1>Average Makes Per User</h1>
     <div class="col" id="chart3">
     </div>
   </div>
   <div class="row" height="100px">
+    <h1>Most Common Ingredients</h1>
     <div class="col chartWarpper" id="chart4" height="100px">
-
     </div>
   </div>

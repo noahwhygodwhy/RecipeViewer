@@ -26,5 +26,6 @@ urlpatterns = [
     path('makesViewData/', makesViewData.as_view(), name='makesViewData'),
     path('recipeViewData/', recipeViewData.as_view(), name='recipeViewData'),
     path('buyStock/', views.buyStock, name='buyStock'),
+    path("getIngredientTable/", views.getIngredientTable, name="getIngredientTable")
     #path('users/', views.userView, name='Users'),
 ] 
