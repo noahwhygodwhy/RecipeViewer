@@ -195,27 +195,6 @@ def ingredientDetails(request, data={}):
     data["ingredient"] = Ingredients.objects.get(ingredient_id = ingredient_id)
     return render(request, "ingredientModal.html", data)
 
-def getIngredientTable(request, data={}):
-    username = request.GET["username"]
-    user_id = Users.objects.get(username=username).user_id
-    madeRecipes = Makes.objects.filter(user_id=user_id).values("recipe_id")
-    ingredients = Usedby.objects.filter(recipe_id__in=madeRecipes)
-    print(len(list(ingredients)))
-    counts = ingredients.values("ingredient_id").annotate(theAgg=Count("ingredient_id")).order_by("-theAgg").values("ingredient_id", "theAgg")
-
-
-    print(counts)
-
-    #find favorite ingredients
-    
-    #get a table
-
-    #filter it based on favorite ingredients
-
-    #return it
-
-    return HttpResponse()
-
 #################################################################
 #DATATABLE VIEWS
 #################################################################
@@ -548,6 +527,34 @@ def getTopFiveIngByQuant(request, data={}):
     data["graphLabel"] = "Top Five Ingredient Stocks"
     return render(request, 'pieChart.html', data)
 
+def getFavoriteIngredientGraph(request, data={}):
+    username = request.GET["username"]
+    user_id = Users.objects.get(username=username).user_id
+    madeRecipes = Makes.objects.filter(user_id=user_id).values("recipe_id")
+    ingredients = Usedby.objects.filter(recipe_id__in=madeRecipes)
+    print(len(list(ingredients)))
+    counts = ingredients.values("ingredient_id").annotate(theAgg=Count("ingredient_id")).order_by("-theAgg").values("ingredient_id", "theAgg")[0:40]
+
+    labels = list()
+    chartData = list()
+    colors = "["
+    for x in counts:
+        chartData.append(x["theAgg"])
+        labels.append(Ingredients.objects.get(ingredient_id=x["ingredient_id"]).name) #yes, there's a better way of doing this, but couldn't quite figure out the query
+        red = min(255, 250-x["theAgg"]*2)
+        blue = min(255, 0+x["theAgg"]*4)
+        green= 0
+        colors += '"#' + f'{red:02x}' + f'{green:02x}' + f'{blue:02x}' + '",'
+    colors.strip(",")
+    colors += "]"
+
+    data["backgroundColor"] = colors
+    data["labels"] = labels
+    data["data"] = chartData
+    data["chartID"] = uuid.uuid4()
+    data["graphLabel"] = "Out of " + str(len(madeRecipes)) + " recipes used in "
+
+    return render(request, 'barGraph.html', data)
 #def getAverageTotalPrepTime(request, data={}):
 #    labels = list()
 #    chartData = list()
