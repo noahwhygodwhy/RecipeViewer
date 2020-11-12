@@ -556,7 +556,7 @@ def getFavoriteIngredientGraph(request, data={}):
         labels.append(x["ingredient__name"]) #yes, there's a better way of doing this, but couldn't quite figure out the query
         green = min(255, 200-(i*5))
         red = min(255, 150+(i*5))
-        blue = 0
+        blue = i*3
         colors += '"#' + f'{red:02x}' + f'{green:02x}' + f'{blue:02x}' + '",'
     colors.strip(",")
     colors += "]"
