@@ -198,6 +198,13 @@ def ingredientDetails(request, data={}):
 def getIngredientTable(request, data={}):
     username = request.GET["username"]
     user_id = Users.objects.get(username=username).user_id
+    madeRecipes = Makes.objects.filter(user_id=user_id).values("recipe_id")
+    ingredients = Usedby.objects.filter(recipe_id__in=madeRecipes)
+    print(len(list(ingredients)))
+    counts = ingredients.values("ingredient_id").annotate(theAgg=Count("ingredient_id")).order_by("-theAgg").values("ingredient_id", "theAgg")
+
+
+    print(counts)
 
     #find favorite ingredients
     
@@ -471,7 +478,7 @@ def getMakesPerUserGraph(request, data={}):
     data["labels"] = labels
     data["data"] = chartData
     data["chartID"] = uuid.uuid4()
-    data["graphLabel"] = "Makes Per User"
+    data["graphLabel"] = "Number of Users with X Makes:"
     return render(request, 'barGraph.html', data)
 
     #counts is now a dict of Makes:How mnay people have that many makes
