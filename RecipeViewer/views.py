@@ -121,6 +121,10 @@ def ingredientView(request):
     return render(request, "base.html", data)
 
 def analyticsView(request, data={}):
+
+    query = Users.objects.all().values("username")
+    usernames = list(map(lambda x:x["username"], query))
+    data["usernames"] = usernames
     data["nested"] = "analytics.html"
     return render(request, 'base.html', data)
 
@@ -529,21 +533,30 @@ def getTopFiveIngByQuant(request, data={}):
 
 def getFavoriteIngredientGraph(request, data={}):
     username = request.GET["username"]
-    user_id = Users.objects.get(username=username).user_id
+    
+    try:
+        user_id = Users.objects.get(username=username).user_id
+    except:
+        return HttpResponse("<h3 style='color:red;'>That is not a valid username.<h3>")
     madeRecipes = Makes.objects.filter(user_id=user_id).values("recipe_id")
+
+    printQuery(madeRecipes)
+
     ingredients = Usedby.objects.filter(recipe_id__in=madeRecipes)
-    print(len(list(ingredients)))
-    counts = ingredients.values("ingredient_id").annotate(theAgg=Count("ingredient_id")).order_by("-theAgg").values("ingredient_id", "theAgg")[0:40]
+    counts = ingredients.prefetch_related("ingredient").values("ingredient_id", "ingredient__name").annotate(quantity=Count("ingredient_id")).order_by("-quantity")[0:40]#.values("ingredient_id", "theAgg")[0:40]
+    printQuery(counts)
+
 
     labels = list()
     chartData = list()
     colors = "["
-    for x in counts:
-        chartData.append(x["theAgg"])
-        labels.append(Ingredients.objects.get(ingredient_id=x["ingredient_id"]).name) #yes, there's a better way of doing this, but couldn't quite figure out the query
-        red = min(255, 250-x["theAgg"]*2)
-        blue = min(255, 0+x["theAgg"]*4)
-        green= 0
+    for i in range(len(counts)):
+        x = counts[i]
+        chartData.append(x["quantity"])
+        labels.append(x["ingredient__name"]) #yes, there's a better way of doing this, but couldn't quite figure out the query
+        green = min(255, 200-(i*5))
+        red = min(255, 150+(i*5))
+        blue = 0
         colors += '"#' + f'{red:02x}' + f'{green:02x}' + f'{blue:02x}' + '",'
     colors.strip(",")
     colors += "]"

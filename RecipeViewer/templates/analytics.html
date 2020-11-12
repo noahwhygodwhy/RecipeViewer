@@ -57,7 +57,12 @@
     <div class="col">
       <h1>Users Favorite Ingredient</h1>
       <form method="POST" action="javascript:void(0);" onsubmit="getIngredientTable()">
-        <input type="text" name="username" placeholder="Username" id="usernameField"></input>
+        <input type="text" name="username" placeholder="Username" id="usernameField" list="usernamelist"></input>
+        <datalist id="usernamelist">
+          {%for x in usernames%}
+          <option>{{x}}</option>
+          {%endfor%}
+        </datalist>
         <button class="btn btn-primary" type="submit">Submit</button>
       </form>
       <div id="favIngredientsGraphContainer">
