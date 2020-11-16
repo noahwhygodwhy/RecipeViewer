@@ -460,8 +460,8 @@ def getMakesPerUserGraph(request, data={}):
     data["backgroundColor"] = colors
     data["labels"] = labels
     data["data"] = chartData
-    data["xAxisLabel"] = "Number of Users"
-    data["yAxisLabel"] = "Amount of Makes"
+    data["yAxisLabel"] = "Number of Users"
+    data["xAxisLabel"] = "Amount of Makes"
     data["chartID"] = uuid.uuid4()
     data["graphLabel"] = "Number of Users with X Makes:"
     return render(request, 'barGraph.html', data)
