@@ -22,6 +22,22 @@
       {
         responsive: true,
         maintainAspectRatio: false,
+          scales: {
+            xAxes: [{
+              scaleLabel: {
+                fontStyle: 'bold',
+                display: true,
+                labelString: '{{xAxisLabel|safe}}'
+              }
+            }],
+            yAxes: [{
+              scaleLabel: {
+                fontStyle: 'bold',
+                display: true,
+                labelString: '{{yAxisLabel|safe}}'
+              }
+            }]
+          }
       },
         legend: {
           display: false

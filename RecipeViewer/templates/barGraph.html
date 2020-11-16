@@ -18,7 +18,23 @@
           labels: {{ labels|safe }}
         },
         options: {
-          responsive: true
+          responsive: true,
+          scales: {
+            xAxes: [{
+              scaleLabel: {
+                fontStyle: 'bold',
+                display: true,
+                labelString: '{{xAxisLabel|safe}}'
+              }
+            }],
+            yAxes: [{
+              scaleLabel: {
+                fontStyle: 'bold',
+                display: true,
+                labelString: '{{yAxisLabel|safe}}'
+              }
+            }]
+          }
         }
       };
       var ctx = document.getElementById('bar-graph-{{chartID}}').getContext('2d');

@@ -460,6 +460,8 @@ def getMakesPerUserGraph(request, data={}):
     data["backgroundColor"] = colors
     data["labels"] = labels
     data["data"] = chartData
+    data["xAxisLabel"] = "Number of Users"
+    data["yAxisLabel"] = "Amount of Makes"
     data["chartID"] = uuid.uuid4()
     data["graphLabel"] = "Number of Users with X Makes:"
     return render(request, 'barGraph.html', data)
@@ -513,6 +515,8 @@ def getTopUsedIngredients(request, data={}):
     data["graphLabel"] = "Used In Recipes"
     data["backgroundColor"] = colors
     data["labels"] = labels
+    data["xAxisLabel"] = "Name of Ingredient"
+    data["yAxisLabel"] = "Number of Ingredient"
     data["data"] = chartData
     data["chartID"] = uuid.uuid4()
     return render(request, "barGraphScrolling.html", data)
@@ -564,6 +568,8 @@ def getFavoriteIngredientGraph(request, data={}):
     data["backgroundColor"] = colors
     data["labels"] = labels
     data["data"] = chartData
+    data["xAxisLabel"] = "Name of Ingredient"
+    data["yAxisLabel"] = "Number of Ingredient"
     data["chartID"] = uuid.uuid4()
     data["graphLabel"] = "Out of " + str(len(madeRecipes)) + " recipes used in "
 
